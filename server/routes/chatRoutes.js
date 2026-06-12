@@ -1,0 +1,23 @@
+const express = require('express');
+const router = express.Router();
+const {
+    createChat,
+    getAllChats,
+    getChatById,
+    updateChat,
+    deleteChat,
+    deleteAllChats,
+} = require('../controllers/chatController');
+const { protect } = require('../middleware/authMiddleware');
+
+// All chat routes are protected
+router.use(protect);
+
+router.post('/create', createChat);
+router.get('/all', getAllChats);
+router.delete('/clear', deleteAllChats); // Must be before /:id routes
+router.get('/:id', getChatById);
+router.put('/:id', updateChat);
+router.delete('/:id', deleteChat);
+
+module.exports = router;
