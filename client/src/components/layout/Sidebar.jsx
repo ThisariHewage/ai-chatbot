@@ -21,9 +21,9 @@ import {
     setActiveChatId,
     setSearchQuery,
     clearAllChats,
-} from '../../redux/slices/chatSlice';
-import { clearAllMessages } from '../../redux/slices/messageSlice';
-import { logout } from '../../redux/slices/authSlice';
+} from '../redux/slices/chatSlice';
+import { clearAllMessages } from '../redux/slices/messageSlice';
+import { logout } from '../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ isOpen, onClose }) => {
