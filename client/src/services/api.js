@@ -1,0 +1,110 @@
+import axios from 'axios';
+
+const API = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || '/api',
+    timeout: 30000,
+});
+
+// Attach JWT token to every request
+API.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Handle 401 globally (token expired, etc.)
+API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
+// ─── Auth ──────────────────────────────────────────────────────────────────────
+export const registerUser = (data) => API.post('/auth/register', data);
+export const loginUser = (data) => API.post('/auth/login', data);
+export const getProfile = () => API.get('/auth/profile');
+export const deleteAccount = () => API.delete('/auth/delete');
+
+// ─── Chats ─────────────────────────────────────────────────────────────────────
+export const createChat = (data) => API.post('/chat/create', data);
+export const getAllChats = () => API.get('/chat/all');
+export const getChatById = (id) => API.get(`/chat/${id}`);
+export const updateChat = (id, data) => API.put(`/chat/${id}`, data);
+export const deleteChat = (id) => API.delete(`/chat/${id}`);
+export const deleteAllChats = () => API.delete('/chat/clear');
+
+// ─── Messages ─────────────────────────────────────────────────────────────────
+export const getMessages = (chatId) => API.get(`/message/${chatId}`);
+
+// Streaming fetch for AI responses (uses native fetch for SSE)
+export const sendMessageStream = async (
+    chatId,
+    content,
+    onDelta,
+    onDone,
+    onError
+) => {
+    const token = localStorage.getItem('token');
+    const baseURL = import.meta.env.VITE_API_URL || '/api';
+
+    try {
+        const response = await fetch(`${baseURL}/message/send`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ chatId, content }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to send message');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n\n').filter(Boolean);
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const jsonStr = line.slice(6);
+                    try {
+                        const parsed = JSON.parse(jsonStr);
+                        if (parsed.error) {
+                            onError(parsed.error);
+                            return;
+                        }
+                        if (parsed.done) {
+                            onDone(parsed);
+                        } else if (parsed.delta) {
+                            onDelta(parsed.delta);
+                        }
+                    } catch {
+                        // Incomplete JSON chunk, skip
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        onError(error.message || 'Connection error');
+    }
+};
+
+export default API;
