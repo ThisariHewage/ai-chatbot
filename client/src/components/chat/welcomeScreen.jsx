@@ -22,6 +22,15 @@ const WelcomeScreen = ({ onSelectSuggestion }) => {
     return (
         <div className="flex-1 flex flex-col items-center justify-center px-4 pb-8">
             <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="mb-8"
+            >
+                <img src="/src/assets/logos/logo_1.png" alt="IntelliChat Logo" className="w-15 h-15 object-contain shadow-2xl shadow-blue-500/20" />
+            </motion.div>
+
+            <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}

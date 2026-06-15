@@ -137,6 +137,12 @@ const Sidebar = ({ isOpen, onClose }) => {
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
             >
+                {/* Sidebar Header with Logo */}
+                <div className="p-4 flex items-center gap-3 border-b border-white/5">
+                    <img src="/src/assets/logos/logo_1.png" alt="IntelliChat Logo" className="w-8 h-8 object-contain rounded-lg" />
+                    <span className="text-lg font-bold text-white tracking-tight">IntelliChat</span>
+                </div>
+
                 {/* New IntelliChat Button */}
                 <div className="p-3 flex-shrink-0">
                     <button
