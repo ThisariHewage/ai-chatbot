@@ -32,6 +32,24 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
         }
     };
 
+    const handlePaste = (e) => {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        const pastedFiles = [];
+        for (const item of items) {
+            if (item.kind === 'file') {
+                const file = item.getAsFile();
+                if (file) pastedFiles.push(file);
+            }
+        }
+
+        if (pastedFiles.length > 0) {
+            e.preventDefault();
+            setFiles((prev) => [...prev, ...pastedFiles].slice(0, 5));
+        }
+    };
+
     const handleFileSelect = (e) => {
         const selected = Array.from(e.target.files);
         if (selected.length === 0) return;
@@ -116,6 +134,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
+                        onPaste={handlePaste}
                         placeholder="Message IntelliChat..."
                         disabled={disabled}
                         rows={1}
