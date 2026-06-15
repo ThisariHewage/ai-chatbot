@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FiCopy, FiCheck, FiUser, FiEdit2, FiX, FiCheckCircle, FiDownload } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiUser, FiEdit2, FiX, FiCheckCircle, FiDownload, FiFile } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch } from 'react-redux';
 import { editMessageStream } from '../../services/api';
@@ -69,6 +69,12 @@ const MessageBubble = ({ message }) => {
     const textareaRef = useRef(null);
 
     const isUser = message.role === 'user';
+
+    const formatFileSize = (bytes) => {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
 
     useEffect(() => {
         if (isEditing && textareaRef.current) {
@@ -219,10 +225,44 @@ const MessageBubble = ({ message }) => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             className={`prose-chat ${isUser
-                                    ? 'bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tr-none text-right'
-                                    : ''
+                                ? 'bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tr-none text-right'
+                                : ''
                                 }`}
                         >
+                            {/* Attachments */}
+                            {message.attachments && message.attachments.length > 0 && (
+                                <div className={`flex flex-wrap gap-2 mb-3 ${isUser ? 'justify-end' : ''}`}>
+                                    {message.attachments.map((att, idx) => {
+                                        const src = att._blob ? att.url : `${import.meta.env.VITE_API_URL?.replace('/api', '') || ''}${att.url}`;
+                                        return att.fileType === 'image' ? (
+                                            <a key={idx} href={src} target="_blank" rel="noopener noreferrer">
+                                                <img
+                                                    src={src}
+                                                    alt={att.filename}
+                                                    className="max-w-[200px] max-h-[200px] rounded-lg object-cover border border-white/10 hover:border-white/30 transition-colors cursor-pointer"
+                                                />
+                                            </a>
+                                        ) : (
+                                            <a
+                                                key={idx}
+                                                href={src}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 bg-[#1e1e1e] rounded-lg px-3 py-2 border border-white/10 hover:border-white/30 transition-colors no-underline"
+                                            >
+                                                <div className="w-8 h-8 rounded bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                                    <FiFile className="w-4 h-4 text-blue-400" />
+                                                </div>
+                                                <div className="flex flex-col min-w-0">
+                                                    <span className="text-xs text-white truncate max-w-[150px]">{att.filename}</span>
+                                                    <span className="text-[10px] text-gray-500">{att.size ? formatFileSize(att.size) : 'File'}</span>
+                                                </div>
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{

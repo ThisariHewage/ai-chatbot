@@ -53,20 +53,42 @@ export const sendMessageStream = async (
     content,
     onDelta,
     onDone,
-    onError
+    onError,
+    files = []
 ) => {
     const token = localStorage.getItem('token');
     const baseURL = import.meta.env.VITE_API_URL || '/api';
 
     try {
-        const response = await fetch(`${baseURL}/message/send`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ chatId, content }),
-        });
+        let fetchOptions;
+
+        if (files.length > 0) {
+            // Use FormData for file uploads
+            const formData = new FormData();
+            formData.append('chatId', chatId);
+            formData.append('content', content);
+            files.forEach((file) => formData.append('files', file));
+
+            fetchOptions = {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            };
+        } else {
+            // Plain JSON for text-only messages
+            fetchOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ chatId, content }),
+            };
+        }
+
+        const response = await fetch(`${baseURL}/message/send`, fetchOptions);
 
         if (!response.ok) {
             throw new Error('Failed to send message');

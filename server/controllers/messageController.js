@@ -28,8 +28,16 @@ const sendMessage = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Chat not found.' });
         }
 
+        // Process uploaded files
+        const attachments = (req.files || []).map((file) => ({
+            url: `/uploads/${file.filename}`,
+            filename: file.originalname,
+            fileType: file.mimetype.startsWith('image/') ? 'image' : 'file',
+            size: file.size,
+        }));
+
         // Save user message to DB
-        const userMessage = await Message.create({ chatId, role: 'user', content });
+        const userMessage = await Message.create({ chatId, role: 'user', content, attachments });
 
         // Auto-generate a smart title from the first message (via AI)
         if (chat.title === 'New IntelliChat') {

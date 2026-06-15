@@ -16,6 +16,14 @@ const messageSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Message content is required'],
         },
+        attachments: [
+            {
+                url: String,
+                filename: String,
+                fileType: String,
+                size: Number,
+            },
+        ],
     },
     { timestamps: true }
 );

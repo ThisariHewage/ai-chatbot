@@ -39,7 +39,7 @@ const ChatPage = () => {
         }
     }, [activeChatId, dispatch]);
 
-    const handleSend = async (content) => {
+    const handleSend = async (content, files = []) => {
         let chatId = activeChatId;
 
         // If no active chat, create one first
@@ -52,12 +52,22 @@ const ChatPage = () => {
             chatId = result.payload._id;
         }
 
+        // Build optimistic attachments from File objects
+        const optimisticAttachments = files.map((f) => ({
+            url: URL.createObjectURL(f),
+            filename: f.name,
+            fileType: f.type.startsWith('image/') ? 'image' : 'file',
+            size: f.size,
+            _blob: true,
+        }));
+
         // Add optimistic user message immediately
         const tempUserMsg = {
             _id: `temp-${Date.now()}`,
             chatId,
             role: 'user',
             content,
+            attachments: optimisticAttachments,
             createdAt: new Date().toISOString(),
             _optimistic: true,
         };
@@ -87,7 +97,8 @@ const ChatPage = () => {
             (error) => {
                 dispatch(setStreamError());
                 toast.error(error || 'Failed to get response');
-            }
+            },
+            files
         );
     };
 
