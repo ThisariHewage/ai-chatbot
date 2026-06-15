@@ -49,8 +49,17 @@ const Sidebar = ({ isOpen, onClose }) => {
     const menuRef = useRef(null);
 
     useEffect(() => {
-        dispatch(fetchChats());
-    }, [dispatch]);
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenMenuId(null);
+            }
+            if (showUserMenu && !event.target.closest('.user-menu-container')) {
+                setShowUserMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showUserMenu]);
 
     const filteredChats = chats.filter((c) =>
         c.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -237,7 +246,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: 'auto', opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        className="overflow-hidden"
+                                        className="relative"
                                     >
                                         {pinnedChats.map((chat) => (
                                             <motion.div
@@ -247,13 +256,83 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                 exit={{ opacity: 0, x: -10 }}
                                                 transition={{ duration: 0.15 }}
                                             >
-                                                <div
-                                                    onClick={() => handleSelectChat(chat._id)}
-                                                    className="group flex items-center gap-2 px-2 py-2 cursor-pointer transition-colors"
-                                                >
-                                                    <BsPinAngleFill className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                                    <span className="flex-1 text-sm text-gray-200 truncate">{chat.title}</span>
-                                                </div>
+                                                {editingId === chat._id ? (
+                                                    <div
+                                                        className="flex items-center gap-1 px-2 py-2 rounded-lg bg-white/10"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <input
+                                                            autoFocus
+                                                            value={editTitle}
+                                                            onChange={(e) => setEditTitle(e.target.value)}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter') handleConfirmRename(e);
+                                                                if (e.key === 'Escape') handleCancelRename(e);
+                                                            }}
+                                                            className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
+                                                        />
+                                                        <button onClick={handleConfirmRename} className="text-green-400 hover:text-green-300 p-0.5">
+                                                            <FiCheck className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button onClick={handleCancelRename} className="text-red-400 hover:text-red-300 p-0.5">
+                                                            <FiX className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div
+                                                        onClick={() => handleSelectChat(chat._id)}
+                                                        className="group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors hover:bg-white/8"
+                                                    >
+                                                        <BsPinAngleFill className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                                        <span className="flex-1 text-sm text-gray-200 truncate">{chat.title}</span>
+
+                                                        {/* ⋯ menu button */}
+                                                        <div className={`${openMenuId === chat._id ? 'flex' : 'hidden group-hover:flex'} items-center flex-shrink-0 relative`}>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }}
+                                                                className="p-1 text-gray-400 hover:text-white transition-colors rounded"
+                                                            >
+                                                                <FiMoreHorizontal className="w-3.5 h-3.5" />
+                                                            </button>
+
+                                                            <AnimatePresence>
+                                                                {openMenuId === chat._id && (
+                                                                    <motion.div
+                                                                        ref={menuRef}
+                                                                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                        transition={{ duration: 0.1 }}
+                                                                        className="absolute right-0 top-7 z-40 w-44 bg-[#2a2a2a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                    >
+                                                                        <button onClick={(e) => handlePin(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                            {chat.pinned ? <BsPinAngleFill className="w-3.5 h-3.5 text-gray-400" /> : <BsPinAngle className="w-3.5 h-3.5" />}
+                                                                            {chat.pinned ? 'Unpin' : 'Pin'}
+                                                                        </button>
+                                                                        <button onClick={(e) => handleArchive(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                            <FiArchive className="w-3.5 h-3.5" />
+                                                                            {chat.archived ? 'Unarchive' : 'Archive'}
+                                                                        </button>
+                                                                        <button onClick={(e) => handleDeleteChat(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-400 hover:bg-white/10 transition-colors">
+                                                                            <FiTrash2 className="w-3.5 h-3.5" />
+                                                                            Delete
+                                                                        </button>
+                                                                        <div className="border-t border-white/10" />
+                                                                        <button onClick={(e) => handleStartRename(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                            <FiEdit2 className="w-3.5 h-3.5" />
+                                                                            Rename
+                                                                        </button>
+                                                                        <button onClick={(e) => handleShare(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                            <FiLink className="w-3.5 h-3.5" />
+                                                                            Share link
+                                                                        </button>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </motion.div>
                                         ))}
                                     </motion.div>
@@ -294,7 +373,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                             initial={{ height: 0, opacity: 0 }}
                                             animate={{ height: 'auto', opacity: 1 }}
                                             exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden"
+                                            className="relative"
                                         >
                                             {items.map((chat) => (
                                                 <motion.div
@@ -342,7 +421,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                                 {chat.title}
                                                             </span>
                                                             {/* ⋯ menu button */}
-                                                            <div className="hidden group-hover:flex items-center flex-shrink-0 relative">
+                                                            <div className={`${openMenuId === chat._id ? 'flex' : 'hidden group-hover:flex'} items-center flex-shrink-0 relative`}>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }}
                                                                     className="p-1 text-gray-400 hover:text-white transition-colors rounded"
@@ -353,6 +432,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                                 <AnimatePresence>
                                                                     {openMenuId === chat._id && (
                                                                         <motion.div
+                                                                            ref={menuRef}
                                                                             initial={{ opacity: 0, scale: 0.95, y: -4 }}
                                                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                                                             exit={{ opacity: 0, scale: 0.95, y: -4 }}
@@ -401,7 +481,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
                 {/* User Menu */}
 
-                <div className="flex-shrink-0 p-2 border-t border-white/10 relative">
+                <div className="flex-shrink-0 p-2 border-t border-white/10 relative user-menu-container">
                     <button
                         onClick={() => setShowUserMenu((v) => !v)}
                         className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/10 transition-colors"
