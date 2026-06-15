@@ -36,7 +36,7 @@ const Register = () => {
                 className="w-full max-w-sm"
             >
                 <div className="text-center mb-8 flex flex-col items-center">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden mb-4 shadow-xl border border-white/10">
+                    <div className="w-15 h-15 overflow-hidden mb-4 shadow-xl border border-white/10">
                         <img src="/src/assets/logos/logo_1.png" alt="IntelliChat Logo" className="w-full h-full object-cover" />
                     </div>
                     <h1 className="text-2xl font-semibold text-white">Create an account</h1>
