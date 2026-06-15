@@ -64,10 +64,15 @@ const getChatById = async (req, res, next) => {
  */
 const updateChat = async (req, res, next) => {
     try {
-        const { title } = req.body;
+        const { title, pinned, archived } = req.body;
+        const update = {};
+        if (title !== undefined) update.title = title;
+        if (pinned !== undefined) update.pinned = pinned;
+        if (archived !== undefined) update.archived = archived;
+
         const chat = await Chat.findOneAndUpdate(
             { _id: req.params.id, userId: req.user._id },
-            { title },
+            update,
             { new: true, runValidators: true }
         );
         if (!chat) {
@@ -126,6 +131,30 @@ const deleteAllChats = async (req, res, next) => {
     }
 };
 
+
+/**
+ * @desc    Generate or return share token for a chat
+ * @route   POST /api/chat/:id/share
+ * @access  Private
+ */
+const shareChat = async (req, res, next) => {
+    try {
+        let chat = await Chat.findOne({ _id: req.params.id, userId: req.user._id });
+        if (!chat) {
+            return res.status(404).json({ success: false, message: 'Chat not found.' });
+        }
+        // Generate token only once
+        if (!chat.shareToken) {
+            chat.shareToken = require('crypto').randomUUID();
+            await chat.save();
+        }
+        const shareUrl = `${req.protocol}://${req.get('host')}/share/${chat.shareToken}`;
+        res.status(200).json({ success: true, shareUrl, shareToken: chat.shareToken });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     createChat,
     getAllChats,
@@ -133,4 +162,5 @@ module.exports = {
     updateChat,
     deleteChat,
     deleteAllChats,
+    shareChat,
 };

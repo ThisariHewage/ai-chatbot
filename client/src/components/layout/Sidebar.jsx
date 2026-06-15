@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -12,7 +12,11 @@ import {
     FiLogOut,
     FiUser,
     FiChevronDown,
+    FiMoreHorizontal,
+    FiLink,
+    FiArchive,
 } from 'react-icons/fi';
+import { BsPinAngle, BsPinAngleFill } from 'react-icons/bs';
 import {
     fetchChats,
     newChat,
@@ -21,10 +25,14 @@ import {
     setActiveChatId,
     setSearchQuery,
     clearAllChats,
+    togglePinChat,
+    toggleArchiveChat,
+    generateShareLink,
 } from '../redux/slices/chatSlice';
 import { clearAllMessages } from '../redux/slices/messageSlice';
 import { logout } from '../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Sidebar = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -36,6 +44,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     const [editTitle, setEditTitle] = useState('');
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, title }
+    const [openMenuId, setOpenMenuId] = useState(null); // ⋯ context menu
+    const menuRef = useRef(null);
 
     useEffect(() => {
         dispatch(fetchChats());
@@ -61,6 +71,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const handleDeleteChat = (e, chat) => {
         e.stopPropagation();
+        setOpenMenuId(null);
         setDeleteConfirm({ id: chat._id, title: chat.title });
     };
 
@@ -71,23 +82,33 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const cancelDelete = () => setDeleteConfirm(null);
 
+    const handlePin = (e, chat) => {
+        e.stopPropagation();
+        setOpenMenuId(null);
+        dispatch(togglePinChat({ chatId: chat._id, pinned: !chat.pinned }));
+    };
+
+    const handleArchive = (e, chat) => {
+        e.stopPropagation();
+        setOpenMenuId(null);
+        dispatch(toggleArchiveChat({ chatId: chat._id, archived: !chat.archived }));
+    };
+
+    const handleShare = async (e, chat) => {
+        e.stopPropagation();
+        setOpenMenuId(null);
+        const result = await dispatch(generateShareLink(chat._id));
+        if (result.payload?.shareUrl) {
+            await navigator.clipboard.writeText(result.payload.shareUrl);
+            toast.success('Share link copied!');
+        }
+    };
+
     const handleStartRename = (e, chat) => {
         e.stopPropagation();
+        setOpenMenuId(null);
         setEditingId(chat._id);
         setEditTitle(chat.title);
-    };
-
-    const handleConfirmRename = (e) => {
-        e.stopPropagation();
-        if (editTitle.trim()) {
-            dispatch(renameChat({ chatId: editingId, title: editTitle.trim() }));
-        }
-        setEditingId(null);
-    };
-
-    const handleCancelRename = (e) => {
-        e.stopPropagation();
-        setEditingId(null);
     };
 
     const handleLogout = () => {
@@ -104,7 +125,20 @@ const Sidebar = ({ isOpen, onClose }) => {
         setShowUserMenu(false);
     };
 
-    // Group chats by date
+    const handleConfirmRename = (e) => {
+        e.stopPropagation();
+        if (editTitle.trim()) {
+            dispatch(renameChat({ chatId: editingId, title: editTitle.trim() }));
+        }
+        setEditingId(null);
+    };
+
+    const handleCancelRename = (e) => {
+        e.stopPropagation();
+        setEditingId(null);
+    };
+
+    // Group chats by date — exclude archived, pinned float to top
     const groupChats = (chatList) => {
         const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -114,6 +148,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         const groups = { Today: [], Yesterday: [], 'Previous 7 Days': [], Older: [] };
 
         chatList.forEach((chat) => {
+            if (chat.archived) return; // hide archived
             const d = new Date(chat.createdAt);
             if (d >= today) groups['Today'].push(chat);
             else if (d >= yesterday) groups['Yesterday'].push(chat);
@@ -124,6 +159,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         return groups;
     };
 
+    const pinnedChats = filteredChats.filter((c) => c.pinned && !c.archived);
     const grouped = groupChats(filteredChats);
 
     return (
@@ -233,28 +269,59 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                 <div
                                                     onClick={() => handleSelectChat(chat._id)}
                                                     className={`
-                            group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors
+                            group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors
                             ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'}
                           `}
                                                 >
-                                                    <FiMessageSquare className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                                    {chat.pinned
+                                                        ? <BsPinAngleFill className="w-3 h-3 text-yellow-400 flex-shrink-0" />
+                                                        : <FiMessageSquare className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
                                                     <span className="flex-1 text-sm text-gray-200 truncate">
                                                         {chat.title}
                                                     </span>
-                                                    {/* Action buttons - show on hover */}
-                                                    <div className="hidden group-hover:flex items-center gap-0.5 flex-shrink-0">
+                                                    {/* ⋯ menu button */}
+                                                    <div className="hidden group-hover:flex items-center flex-shrink-0 relative">
                                                         <button
-                                                            onClick={(e) => handleStartRename(e, chat)}
-                                                            className="p-1 text-gray-400 hover:text-white transition-colors"
+                                                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }}
+                                                            className="p-1 text-gray-400 hover:text-white transition-colors rounded"
                                                         >
-                                                            <FiEdit2 className="w-3 h-3" />
+                                                            <FiMoreHorizontal className="w-3.5 h-3.5" />
                                                         </button>
-                                                        <button
-                                                            onClick={(e) => handleDeleteChat(e, chat)}
-                                                            className="p-1 text-gray-400 hover:text-red-400 transition-colors"
-                                                        >
-                                                            <FiTrash2 className="w-3 h-3" />
-                                                        </button>
+
+                                                        <AnimatePresence>
+                                                            {openMenuId === chat._id && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                    transition={{ duration: 0.1 }}
+                                                                    className="absolute right-0 top-7 z-40 w-44 bg-[#2a2a2a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <button onClick={(e) => handlePin(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                        {chat.pinned ? <BsPinAngleFill className="w-3.5 h-3.5 text-yellow-400" /> : <BsPinAngle className="w-3.5 h-3.5" />}
+                                                                        {chat.pinned ? 'Unpin' : 'Pin'}
+                                                                    </button>
+                                                                    <button onClick={(e) => handleShare(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                        <FiLink className="w-3.5 h-3.5" />
+                                                                        Share link
+                                                                    </button>
+                                                                    <button onClick={(e) => handleArchive(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                        <FiArchive className="w-3.5 h-3.5" />
+                                                                        {chat.archived ? 'Unarchive' : 'Archive'}
+                                                                    </button>
+                                                                    <div className="border-t border-white/10" />
+                                                                    <button onClick={(e) => handleStartRename(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                        <FiEdit2 className="w-3.5 h-3.5" />
+                                                                        Rename
+                                                                    </button>
+                                                                    <button onClick={(e) => handleDeleteChat(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-400 hover:bg-white/10 transition-colors">
+                                                                        <FiTrash2 className="w-3.5 h-3.5" />
+                                                                        Delete
+                                                                    </button>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
                                                     </div>
                                                 </div>
                                             )}
@@ -266,7 +333,37 @@ const Sidebar = ({ isOpen, onClose }) => {
                     })}
                 </div>
 
+                {/* Pinned section at top of the list */}
+                {pinnedChats.length > 0 && (
+                    <div className="px-2 mb-2 order-first">
+                        <p className="text-[11px] text-yellow-500/80 font-medium px-2 py-1.5 uppercase tracking-wider flex items-center gap-1">
+                            <BsPinAngleFill className="w-3 h-3" /> Pinned
+                        </p>
+                        <AnimatePresence>
+                            {pinnedChats.map((chat) => (
+                                <motion.div
+                                    key={`pinned-${chat._id}`}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    transition={{ duration: 0.15 }}
+                                >
+                                    <div
+                                        onClick={() => handleSelectChat(chat._id)}
+                                        className={`group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'
+                                            }`}
+                                    >
+                                        <BsPinAngleFill className="w-3 h-3 text-yellow-400 flex-shrink-0" />
+                                        <span className="flex-1 text-sm text-gray-200 truncate">{chat.title}</span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                )}
+
                 {/* User Menu */}
+
                 <div className="flex-shrink-0 p-2 border-t border-white/10 relative">
                     <button
                         onClick={() => setShowUserMenu((v) => !v)}

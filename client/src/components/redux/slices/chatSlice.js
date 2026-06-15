@@ -5,6 +5,9 @@ import {
     deleteChat,
     updateChat,
     deleteAllChats,
+    pinChat,
+    archiveChat,
+    shareChatLink,
 } from '../../../services/api';
 import toast from 'react-hot-toast';
 
@@ -65,6 +68,42 @@ export const clearAllChats = createAsyncThunk(
             return true;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Failed to clear chats');
+        }
+    }
+);
+
+export const togglePinChat = createAsyncThunk(
+    'chat/pin',
+    async ({ chatId, pinned }, { rejectWithValue }) => {
+        try {
+            const { data } = await pinChat(chatId, pinned);
+            return data.chat;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to pin chat');
+        }
+    }
+);
+
+export const toggleArchiveChat = createAsyncThunk(
+    'chat/archive',
+    async ({ chatId, archived }, { rejectWithValue }) => {
+        try {
+            const { data } = await archiveChat(chatId, archived);
+            return data.chat;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to archive chat');
+        }
+    }
+);
+
+export const generateShareLink = createAsyncThunk(
+    'chat/share',
+    async (chatId, { rejectWithValue }) => {
+        try {
+            const { data } = await shareChatLink(chatId);
+            return { chatId, shareUrl: data.shareUrl };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to generate share link');
         }
     }
 );
@@ -144,6 +183,34 @@ const chatSlice = createSlice({
             .addCase(clearAllChats.rejected, (_, action) => {
                 toast.error(action.payload);
             });
+
+        builder
+            .addCase(togglePinChat.fulfilled, (state, action) => {
+                const idx = state.chats.findIndex((c) => c._id === action.payload._id);
+                if (idx !== -1) state.chats[idx] = action.payload;
+                toast.success(action.payload.pinned ? 'Chat pinned' : 'Chat unpinned');
+            })
+            .addCase(togglePinChat.rejected, (_, action) => { toast.error(action.payload); });
+
+        builder
+            .addCase(toggleArchiveChat.fulfilled, (state, action) => {
+                // Remove from list if archiving, update in place if unarchiving
+                if (action.payload.archived) {
+                    state.chats = state.chats.filter((c) => c._id !== action.payload._id);
+                    if (state.activeChatId === action.payload._id) {
+                        state.activeChatId = state.chats[0]?._id || null;
+                    }
+                    toast.success('Chat archived');
+                } else {
+                    const idx = state.chats.findIndex((c) => c._id === action.payload._id);
+                    if (idx !== -1) state.chats[idx] = action.payload;
+                    toast.success('Chat unarchived');
+                }
+            })
+            .addCase(toggleArchiveChat.rejected, (_, action) => { toast.error(action.payload); });
+
+        builder
+            .addCase(generateShareLink.rejected, (_, action) => { toast.error(action.payload); });
     },
 });
 

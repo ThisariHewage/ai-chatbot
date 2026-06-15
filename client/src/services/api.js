@@ -43,6 +43,10 @@ export const getChatById = (id) => API.get(`/chat/${id}`);
 export const updateChat = (id, data) => API.put(`/chat/${id}`, data);
 export const deleteChat = (id) => API.delete(`/chat/${id}`);
 export const deleteAllChats = () => API.delete('/chat/clear');
+export const pinChat = (id, pinned) => API.put(`/chat/${id}`, { pinned });
+export const archiveChat = (id, archived) => API.put(`/chat/${id}`, { archived });
+export const shareChatLink = (id) => API.post(`/chat/${id}/share`);
+
 
 // ─── Messages ─────────────────────────────────────────────────────────────────
 export const getMessages = (chatId) => API.get(`/message/${chatId}`);

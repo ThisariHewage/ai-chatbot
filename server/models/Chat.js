@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const chatSchema = new mongoose.Schema(
     {
         userId: {
@@ -12,6 +13,17 @@ const chatSchema = new mongoose.Schema(
             default: 'New IntelliChat',
             trim: true,
             maxlength: [100, 'Title cannot exceed 100 characters'],
+        },
+        pinned: {
+            type: Boolean,
+            default: false,
+        },
+        archived: {
+            type: Boolean,
+            default: false,
+        },
+        shareToken: {
+            type: String,
         },
     },
     { timestamps: true }

@@ -7,6 +7,7 @@ const {
     updateChat,
     deleteChat,
     deleteAllChats,
+    shareChat,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -19,5 +20,6 @@ router.delete('/clear', deleteAllChats); // Must be before /:id routes
 router.get('/:id', getChatById);
 router.put('/:id', updateChat);
 router.delete('/:id', deleteChat);
+router.post('/:id/share', shareChat);
 
 module.exports = router;
