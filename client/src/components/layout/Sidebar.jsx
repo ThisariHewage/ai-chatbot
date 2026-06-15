@@ -45,6 +45,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, title }
     const [openMenuId, setOpenMenuId] = useState(null); // ⋯ context menu
+    const [collapsedSections, setCollapsedSections] = useState({}); // { 'Pinned': true, 'Today': false, ... }
     const menuRef = useRef(null);
 
     useEffect(() => {
@@ -123,6 +124,10 @@ const Sidebar = ({ isOpen, onClose }) => {
             dispatch(clearAllMessages());
         }
         setShowUserMenu(false);
+    };
+
+    const toggleSection = (name) => {
+        setCollapsedSections(prev => ({ ...prev, [name]: !prev[name] }));
     };
 
     const handleConfirmRename = (e) => {
@@ -217,28 +222,43 @@ const Sidebar = ({ isOpen, onClose }) => {
                     {/* Pinned section at top of the list */}
                     {pinnedChats.length > 0 && (
                         <div className="px-2 mb-2">
-                            <p className="text-[11px] text-yellow-500/80 font-medium px-2 py-1.5 uppercase tracking-wider flex items-center gap-1">
-                                <BsPinAngleFill className="w-3 h-3" /> Pinned
-                            </p>
+                            <button
+                                onClick={() => toggleSection('Pinned')}
+                                className="w-full flex items-center justify-between group/header px-2 py-1.5"
+                            >
+                                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider flex items-center gap-1">
+                                    <BsPinAngleFill className="w-3 h-3" /> Pinned
+                                </p>
+                                <FiChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${collapsedSections['Pinned'] ? '-rotate-90' : ''}`} />
+                            </button>
                             <AnimatePresence>
-                                {pinnedChats.map((chat) => (
+                                {!collapsedSections['Pinned'] && (
                                     <motion.div
-                                        key={`pinned-${chat._id}`}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: -10 }}
-                                        transition={{ duration: 0.15 }}
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden"
                                     >
-                                        <div
-                                            onClick={() => handleSelectChat(chat._id)}
-                                            className={`group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'
-                                                }`}
-                                        >
-                                            <BsPinAngleFill className="w-3 h-3 text-yellow-400 flex-shrink-0" />
-                                            <span className="flex-1 text-sm text-gray-200 truncate">{chat.title}</span>
-                                        </div>
+                                        {pinnedChats.map((chat) => (
+                                            <motion.div
+                                                key={`pinned-${chat._id}`}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
+                                                transition={{ duration: 0.15 }}
+                                            >
+                                                <div
+                                                    onClick={() => handleSelectChat(chat._id)}
+                                                    className={`group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'
+                                                        }`}
+                                                >
+                                                    <BsPinAngleFill className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                                    <span className="flex-1 text-sm text-gray-200 truncate">{chat.title}</span>
+                                                </div>
+                                            </motion.div>
+                                        ))}
                                     </motion.div>
-                                ))}
+                                )}
                             </AnimatePresence>
                         </div>
                     )}
@@ -257,105 +277,121 @@ const Sidebar = ({ isOpen, onClose }) => {
 
                     {Object.entries(grouped).map(([group, items]) => {
                         if (items.length === 0) return null;
+                        const isCollapsed = collapsedSections[group];
                         return (
                             <div key={group} className="mb-2">
-                                <p className="text-[11px] text-gray-500 font-medium px-2 py-1.5 uppercase tracking-wider">
-                                    {group}
-                                </p>
+                                <button
+                                    onClick={() => toggleSection(group)}
+                                    className="w-full flex items-center justify-between group/header px-2 py-1.5"
+                                >
+                                    <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider">
+                                        {group}
+                                    </p>
+                                    <FiChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                                </button>
                                 <AnimatePresence>
-                                    {items.map((chat) => (
+                                    {!isCollapsed && (
                                         <motion.div
-                                            key={chat._id}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: -10 }}
-                                            transition={{ duration: 0.15 }}
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
                                         >
-                                            {editingId === chat._id ? (
-                                                // Rename input
-                                                <div
-                                                    className="flex items-center gap-1 px-2 py-2 rounded-lg bg-white/10"
-                                                    onClick={(e) => e.stopPropagation()}
+                                            {items.map((chat) => (
+                                                <motion.div
+                                                    key={chat._id}
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -10 }}
+                                                    transition={{ duration: 0.15 }}
                                                 >
-                                                    <input
-                                                        autoFocus
-                                                        value={editTitle}
-                                                        onChange={(e) => setEditTitle(e.target.value)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === 'Enter') handleConfirmRename(e);
-                                                            if (e.key === 'Escape') handleCancelRename(e);
-                                                        }}
-                                                        className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
-                                                    />
-                                                    <button onClick={handleConfirmRename} className="text-green-400 hover:text-green-300 p-0.5">
-                                                        <FiCheck className="w-3.5 h-3.5" />
-                                                    </button>
-                                                    <button onClick={handleCancelRename} className="text-red-400 hover:text-red-300 p-0.5">
-                                                        <FiX className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            ) : (
-                                                <div
-                                                    onClick={() => handleSelectChat(chat._id)}
-                                                    className={`
-                            group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors
-                            ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'}
-                          `}
-                                                >
-                                                    {chat.pinned
-                                                        ? <BsPinAngleFill className="w-3 h-3 text-yellow-400 flex-shrink-0" />
-                                                        : <FiMessageSquare className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
-                                                    <span className="flex-1 text-sm text-gray-200 truncate">
-                                                        {chat.title}
-                                                    </span>
-                                                    {/* ⋯ menu button */}
-                                                    <div className="hidden group-hover:flex items-center flex-shrink-0 relative">
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }}
-                                                            className="p-1 text-gray-400 hover:text-white transition-colors rounded"
+                                                    {editingId === chat._id ? (
+                                                        // Rename input
+                                                        <div
+                                                            className="flex items-center gap-1 px-2 py-2 rounded-lg bg-white/10"
+                                                            onClick={(e) => e.stopPropagation()}
                                                         >
-                                                            <FiMoreHorizontal className="w-3.5 h-3.5" />
-                                                        </button>
-
-                                                        <AnimatePresence>
-                                                            {openMenuId === chat._id && (
-                                                                <motion.div
-                                                                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                                                                    transition={{ duration: 0.1 }}
-                                                                    className="absolute right-0 top-7 z-40 w-44 bg-[#2a2a2a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
-                                                                    onClick={(e) => e.stopPropagation()}
+                                                            <input
+                                                                autoFocus
+                                                                value={editTitle}
+                                                                onChange={(e) => setEditTitle(e.target.value)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') handleConfirmRename(e);
+                                                                    if (e.key === 'Escape') handleCancelRename(e);
+                                                                }}
+                                                                className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
+                                                            />
+                                                            <button onClick={handleConfirmRename} className="text-green-400 hover:text-green-300 p-0.5">
+                                                                <FiCheck className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button onClick={handleCancelRename} className="text-red-400 hover:text-red-300 p-0.5">
+                                                                <FiX className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div
+                                                            onClick={() => handleSelectChat(chat._id)}
+                                                            className={`
+                                    group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors
+                                    ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'}
+                                  `}
+                                                        >
+                                                            {chat.pinned
+                                                                ? <BsPinAngleFill className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                                                : <FiMessageSquare className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
+                                                            <span className="flex-1 text-sm text-gray-200 truncate">
+                                                                {chat.title}
+                                                            </span>
+                                                            {/* ⋯ menu button */}
+                                                            <div className="hidden group-hover:flex items-center flex-shrink-0 relative">
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }}
+                                                                    className="p-1 text-gray-400 hover:text-white transition-colors rounded"
                                                                 >
-                                                                    <button onClick={(e) => handlePin(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
-                                                                        {chat.pinned ? <BsPinAngleFill className="w-3.5 h-3.5 text-yellow-400" /> : <BsPinAngle className="w-3.5 h-3.5" />}
-                                                                        {chat.pinned ? 'Unpin' : 'Pin'}
-                                                                    </button>
-                                                                    <button onClick={(e) => handleShare(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
-                                                                        <FiLink className="w-3.5 h-3.5" />
-                                                                        Share link
-                                                                    </button>
-                                                                    <button onClick={(e) => handleArchive(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
-                                                                        <FiArchive className="w-3.5 h-3.5" />
-                                                                        {chat.archived ? 'Unarchive' : 'Archive'}
-                                                                    </button>
-                                                                    <div className="border-t border-white/10" />
-                                                                    <button onClick={(e) => handleStartRename(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
-                                                                        <FiEdit2 className="w-3.5 h-3.5" />
-                                                                        Rename
-                                                                    </button>
-                                                                    <button onClick={(e) => handleDeleteChat(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-400 hover:bg-white/10 transition-colors">
-                                                                        <FiTrash2 className="w-3.5 h-3.5" />
-                                                                        Delete
-                                                                    </button>
-                                                                </motion.div>
-                                                            )}
-                                                        </AnimatePresence>
-                                                    </div>
-                                                </div>
-                                            )}
+                                                                    <FiMoreHorizontal className="w-3.5 h-3.5" />
+                                                                </button>
+
+                                                                <AnimatePresence>
+                                                                    {openMenuId === chat._id && (
+                                                                        <motion.div
+                                                                            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                            transition={{ duration: 0.1 }}
+                                                                            className="absolute right-0 top-7 z-40 w-44 bg-[#2a2a2a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            <button onClick={(e) => handlePin(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                                {chat.pinned ? <BsPinAngleFill className="w-3.5 h-3.5 text-gray-400" /> : <BsPinAngle className="w-3.5 h-3.5" />}
+                                                                                {chat.pinned ? 'Unpin' : 'Pin'}
+                                                                            </button>
+                                                                            <button onClick={(e) => handleShare(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                                <FiLink className="w-3.5 h-3.5" />
+                                                                                Share link
+                                                                            </button>
+                                                                            <button onClick={(e) => handleArchive(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                                <FiArchive className="w-3.5 h-3.5" />
+                                                                                {chat.archived ? 'Unarchive' : 'Archive'}
+                                                                            </button>
+                                                                            <div className="border-t border-white/10" />
+                                                                            <button onClick={(e) => handleStartRename(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                                <FiEdit2 className="w-3.5 h-3.5" />
+                                                                                Rename
+                                                                            </button>
+                                                                            <button onClick={(e) => handleDeleteChat(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-400 hover:bg-white/10 transition-colors">
+                                                                                <FiTrash2 className="w-3.5 h-3.5" />
+                                                                                Delete
+                                                                            </button>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </AnimatePresence>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </motion.div>
+                                            ))}
                                         </motion.div>
-                                    ))}
+                                    )}
                                 </AnimatePresence>
                             </div>
                         );
