@@ -3,10 +3,11 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FiCopy, FiCheck, FiUser, FiEdit2, FiX, FiCheckCircle } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiUser, FiEdit2, FiX, FiCheckCircle, FiDownload } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch } from 'react-redux';
 import { editMessageStream } from '../../services/api';
+import { exportToPDF } from '../../utils/pdfUtils';
 import {
     appendStreamDelta,
     finalizeStream,
@@ -248,6 +249,14 @@ const MessageBubble = ({ message }) => {
                                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors border-l border-white/10 pl-3"
                             >
                                 <FiEdit2 className="w-3 h-3" /><span>Edit</span>
+                            </button>
+                        )}
+                        {!isUser && (
+                            <button
+                                onClick={() => exportToPDF(message)}
+                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors border-l border-white/10 pl-3"
+                            >
+                                <FiDownload className="w-3 h-3" /><span>Download PDF</span>
                             </button>
                         )}
                     </div>
