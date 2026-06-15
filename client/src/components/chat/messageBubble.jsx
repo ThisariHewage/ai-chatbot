@@ -141,7 +141,8 @@ const MessageBubble = ({ message }) => {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className={`flex gap-4 px-4 py-6 group relative ${isUser ? '' : 'bg-[#2a2a2a]/50'}`}
+            className={`flex gap-4 px-4 py-6 group relative ${isUser ? 'flex-row-reverse' : 'bg-[#2a2a2a]/50'
+                }`}
         >
             {/* Avatar */}
             <div className="flex-shrink-0 mt-0.5">
@@ -151,14 +152,18 @@ const MessageBubble = ({ message }) => {
                     </div>
                 ) : (
                     <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-white/10 shadow-sm bg-[#2f2f2f]">
-                        <img src="/src/assets/logos/logo_1.png" alt="IntelliChat" className="w-full h-full object-cover" />
+                        <img
+                            src="/src/assets/logos/logo_1.png"
+                            alt="IntelliChat"
+                            className="w-full h-full object-cover"
+                        />
                     </div>
                 )}
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-2">
+            <div className={`flex-1 min-w-0 ${isUser ? 'flex flex-col items-end' : ''}`}>
+                <div className={`flex items-center gap-2 mb-2 ${isUser ? 'flex-row-reverse' : ''}`}>
                     <div className="text-sm font-semibold text-gray-300">
                         {isUser ? 'You' : 'IntelliChat'}
                     </div>
@@ -185,13 +190,19 @@ const MessageBubble = ({ message }) => {
                                 rows={1}
                                 disabled={isSaving}
                             />
-                            <div className="flex items-center gap-2">
+                            <div className={`flex items-center gap-2 ${isUser ? 'justify-end' : ''}`}>
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-black text-xs font-medium rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                                 >
-                                    {isSaving ? 'Regenerating...' : <><FiCheckCircle className="w-3.5 h-3.5" /> Save & Submit</>}
+                                    {isSaving ? (
+                                        'Regenerating...'
+                                    ) : (
+                                        <>
+                                            <FiCheckCircle className="w-3.5 h-3.5" /> Save & Submit
+                                        </>
+                                    )}
                                 </button>
                                 <button
                                     onClick={handleCancel}
@@ -207,7 +218,10 @@ const MessageBubble = ({ message }) => {
                             key="markdown"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="prose-chat"
+                            className={`prose-chat ${isUser
+                                    ? 'bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tr-none text-right'
+                                    : ''
+                                }`}
                         >
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
@@ -232,23 +246,34 @@ const MessageBubble = ({ message }) => {
 
                 {/* Actions button */}
                 {!isEditing && (
-                    <div className="mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div
+                        className={`mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity ${isUser ? 'flex-row-reverse' : ''
+                            }`}
+                    >
                         <button
                             onClick={handleCopy}
                             className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors"
                         >
                             {copied ? (
-                                <><FiCheck className="w-3 h-3 text-green-400" /><span className="text-green-400">Copied!</span></>
+                                <>
+                                    <FiCheck className="w-3 h-3 text-green-400" />
+                                    <span className="text-green-400">Copied!</span>
+                                </>
                             ) : (
-                                <><FiCopy className="w-3 h-3" /><span>Copy</span></>
+                                <>
+                                    <FiCopy className="w-3 h-3" />
+                                    <span>Copy</span>
+                                </>
                             )}
                         </button>
                         {isUser && (
                             <button
                                 onClick={handleEdit}
-                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors border-l border-white/10 pl-3"
+                                className={`flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors border-white/10 pl-3 ${isUser ? 'border-r pr-3 pl-0' : 'border-l pl-3'
+                                    }`}
                             >
-                                <FiEdit2 className="w-3 h-3" /><span>Edit</span>
+                                <FiEdit2 className="w-3 h-3" />
+                                <span>Edit</span>
                             </button>
                         )}
                         {!isUser && (
@@ -256,7 +281,8 @@ const MessageBubble = ({ message }) => {
                                 onClick={() => exportToPDF(message)}
                                 className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-300 transition-colors border-l border-white/10 pl-3"
                             >
-                                <FiDownload className="w-3 h-3" /><span>Download PDF</span>
+                                <FiDownload className="w-3 h-3" />
+                                <span>Download PDF</span>
                             </button>
                         )}
                     </div>
