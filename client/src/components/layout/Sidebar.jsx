@@ -45,6 +45,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, title }
     const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null); // ⋯ context menu
     const [collapsedSections, setCollapsedSections] = useState({}); // { 'Pinned': true, 'Today': false, ... }
     const menuRef = useRef(null);
@@ -128,8 +129,14 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
 
     const handleLogout = () => {
+        setShowLogoutConfirm(true);
+        setShowUserMenu(false);
+    };
+
+    const confirmLogout = () => {
         dispatch(logout());
         dispatch(clearAllMessages());
+        setShowLogoutConfirm(false);
         navigate('/login');
     };
 
@@ -700,6 +707,50 @@ const Sidebar = ({ isOpen, onClose }) => {
                                     className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors"
                                 >
                                     Clear all
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {/* Logout Confirmation Modal */}
+                {showLogoutConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShowLogoutConfirm(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.92, opacity: 0, y: 10 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.92, opacity: 0, y: 10 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            className="bg-[#212121] border border-white/10 rounded-2xl p-5 w-full max-w-sm shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-9 h-9 rounded-full bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                                    <FiLogOut className="w-4 h-4 text-rose-400" />
+                                </div>
+                                <h3 className="text-white font-semibold text-base">Sign out?</h3>
+                            </div>
+                            <p className="text-gray-400 text-sm mb-5 leading-relaxed">
+                                Are you sure you want to sign out? You will need to sign in again to access your chats.
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowLogoutConfirm(false)}
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 bg-white/8 hover:bg-white/12 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmLogout}
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors"
+                                >
+                                    Sign out
                                 </button>
                             </div>
                         </motion.div>
