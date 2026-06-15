@@ -156,22 +156,13 @@ const Sidebar = ({ isOpen, onClose }) => {
         setEditingId(null);
     };
 
-    // Group chats by date — exclude archived, pinned float to top
+    // Group chats — exclude archived, pinned float to top
     const groupChats = (chatList) => {
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const yesterday = new Date(today - 86400000);
-        const week = new Date(today - 7 * 86400000);
-
-        const groups = { Today: [], Yesterday: [], 'Previous 7 Days': [], Older: [] };
+        const groups = { Chats: [] };
 
         chatList.forEach((chat) => {
-            if (chat.archived || chat.pinned) return; // Hide archived and pinned from the main list
-            const d = new Date(chat.createdAt);
-            if (d >= today) groups['Today'].push(chat);
-            else if (d >= yesterday) groups['Yesterday'].push(chat);
-            else if (d >= week) groups['Previous 7 Days'].push(chat);
-            else groups['Older'].push(chat);
+            if (chat.archived || chat.pinned) return;
+            groups['Chats'].push(chat);
         });
 
         return groups;
