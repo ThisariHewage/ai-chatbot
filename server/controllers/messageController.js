@@ -4,7 +4,7 @@ const {
     createChatStream,
     buildMessageHistory,
     generateChatTitle,
-} = require('../services/openaiService');
+} = require('../services/geminiService');
 
 /**
  * @desc    Send a message and stream back the AI response (SSE)
@@ -47,17 +47,20 @@ const sendMessage = async (req, res, next) => {
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || '*');
 
-        // Stream tokens from OpenAI service
+        // Stream tokens from Gemini service
+        console.log('Starting Gemini stream with history:', messageHistory);
         const stream = await createChatStream(messageHistory);
+        console.log('Stream created successfully');
         let fullContent = '';
 
         for await (const chunk of stream) {
-            const delta = chunk.choices[0]?.delta?.content || '';
-            if (delta) {
-                fullContent += delta;
-                res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+            const chunkText = chunk.text();
+            if (chunkText) {
+                fullContent += chunkText;
+                res.write(`data: ${JSON.stringify({ delta: chunkText })}\n\n`);
             }
         }
+        console.log('Stream finished, full content length:', fullContent.length);
 
         // Save complete AI response to DB
         const assistantMessage = await Message.create({
@@ -73,13 +76,20 @@ const sendMessage = async (req, res, next) => {
         res.end();
     } catch (error) {
         console.error('Message send error:', error.message);
+
+        let errorMessage = 'AI service error. Please try again.';
+        if (error.status === 429) {
+            errorMessage = 'Your OpenAI API quota has been exceeded. Please check your billing details.';
+        }
+
         if (res.headersSent) {
-            res.write(
-                `data: ${JSON.stringify({ error: 'AI service error. Please try again.' })}\n\n`
-            );
+            res.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
             res.end();
         } else {
-            next(error);
+            res.status(error.status || 500).json({
+                success: false,
+                message: errorMessage,
+            });
         }
     }
 };
