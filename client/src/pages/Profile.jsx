@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FiArrowLeft, FiUser, FiMail, FiCalendar, FiTrash2 } from 'react-icons/fi';
-import { logout } from '../redux/slices/authSlice';
+import { logout } from '../components/redux/slices/authSlice';
 import { deleteAccount } from '../services/api';
 import toast from 'react-hot-toast';
 
