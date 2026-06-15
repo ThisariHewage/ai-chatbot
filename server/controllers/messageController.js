@@ -4,7 +4,7 @@ const {
     createChatStream,
     buildMessageHistory,
     generateChatTitle,
-} = require('../services/geminiService');
+} = require('../services/groqService');
 
 /**
  * @desc    Send a message and stream back the AI response (SSE)
@@ -47,17 +47,17 @@ const sendMessage = async (req, res, next) => {
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || '*');
 
-        // Stream tokens from Gemini service
-        console.log('Starting Gemini stream with history:', messageHistory);
+        // Stream tokens from Groq service
+        console.log('Starting Groq stream with history:', messageHistory);
         const stream = await createChatStream(messageHistory);
         console.log('Stream created successfully');
         let fullContent = '';
 
         for await (const chunk of stream) {
-            const chunkText = chunk.text();
-            if (chunkText) {
-                fullContent += chunkText;
-                res.write(`data: ${JSON.stringify({ delta: chunkText })}\n\n`);
+            const delta = chunk.choices[0]?.delta?.content || '';
+            if (delta) {
+                fullContent += delta;
+                res.write(`data: ${JSON.stringify({ delta })}\n\n`);
             }
         }
         console.log('Stream finished, full content length:', fullContent.length);
