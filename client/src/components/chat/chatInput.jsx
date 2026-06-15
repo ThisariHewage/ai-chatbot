@@ -38,7 +38,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Message ChatGPT..."
+                        placeholder="Message IntelliChat..."
                         disabled={disabled}
                         rows={1}
                         className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm resize-none py-3.5 px-4 focus:outline-none max-h-[200px] overflow-y-auto disabled:opacity-50"
@@ -67,7 +67,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                 </div>
 
                 <p className="text-center text-[11px] text-gray-600 mt-2">
-                    ChatGPT clone can make mistakes. Consider checking important information.
+                    IntelliChat clone can make mistakes. Consider checking important information.
                 </p>
             </div>
         </div>

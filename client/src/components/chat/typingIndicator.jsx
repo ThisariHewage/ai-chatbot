@@ -18,7 +18,7 @@ const TypingIndicator = ({ content }) => {
             </div>
 
             <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-gray-300 mb-2">ChatGPT</div>
+                <div className="text-sm font-semibold text-gray-300 mb-2">IntelliChat</div>
 
                 {isStreaming ? (
                     // Render streamed markdown in real-time

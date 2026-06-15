@@ -85,7 +85,7 @@ const MessageBubble = ({ message }) => {
             {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="text-sm font-semibold text-gray-300 mb-2">
-                    {isUser ? 'You' : 'ChatGPT'}
+                    {isUser ? 'You' : 'IntelliChat'}
                 </div>
                 <div className="prose-chat">
                     <ReactMarkdown

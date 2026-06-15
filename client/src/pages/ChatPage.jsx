@@ -120,7 +120,7 @@ const ChatPage = () => {
                             <FiMenu className="w-5 h-5" />
                         </button>
                         <span className="text-sm font-medium text-gray-300">
-                            {activeChatId ? 'ChatGPT' : 'New Chat'}
+                            {activeChatId ? 'IntelliChat' : 'New Chat'}
                         </span>
                     </div>
 
