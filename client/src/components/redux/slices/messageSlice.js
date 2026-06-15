@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { getMessages } from '../../services/api';
+import { getMessages } from '../../../services/api';
 
 export const fetchMessages = createAsyncThunk(
     'message/fetchAll',

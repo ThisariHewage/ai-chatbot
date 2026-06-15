@@ -5,7 +5,7 @@ import {
     deleteChat,
     updateChat,
     deleteAllChats,
-} from '../../services/api';
+} from '../../../services/api';
 import toast from 'react-hot-toast';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
