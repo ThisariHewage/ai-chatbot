@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
-import { newChat } from '../../redux/slices/chatSlice';
+import { newChat } from '../redux/slices/chatSlice';
 
 const suggestions = [
     { icon: '✍️', title: 'Help me write', subtitle: 'a cover letter for a product manager role' },
