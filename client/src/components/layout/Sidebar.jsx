@@ -35,6 +35,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const [editingId, setEditingId] = useState(null);
     const [editTitle, setEditTitle] = useState('');
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, title }
 
     useEffect(() => {
         dispatch(fetchChats());
@@ -58,10 +59,17 @@ const Sidebar = ({ isOpen, onClose }) => {
         if (window.innerWidth < 768) onClose();
     };
 
-    const handleDeleteChat = (e, chatId) => {
+    const handleDeleteChat = (e, chat) => {
         e.stopPropagation();
-        dispatch(removeChat(chatId));
+        setDeleteConfirm({ id: chat._id, title: chat.title });
     };
+
+    const confirmDelete = () => {
+        if (deleteConfirm) dispatch(removeChat(deleteConfirm.id));
+        setDeleteConfirm(null);
+    };
+
+    const cancelDelete = () => setDeleteConfirm(null);
 
     const handleStartRename = (e, chat) => {
         e.stopPropagation();
@@ -242,7 +250,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                             <FiEdit2 className="w-3 h-3" />
                                                         </button>
                                                         <button
-                                                            onClick={(e) => handleDeleteChat(e, chat._id)}
+                                                            onClick={(e) => handleDeleteChat(e, chat)}
                                                             className="p-1 text-gray-400 hover:text-red-400 transition-colors"
                                                         >
                                                             <FiTrash2 className="w-3 h-3" />
@@ -308,6 +316,53 @@ const Sidebar = ({ isOpen, onClose }) => {
                     </AnimatePresence>
                 </div>
             </aside>
+
+            {/* Delete Confirmation Modal */}
+            <AnimatePresence>
+                {deleteConfirm && (
+                    <motion.div
+                        key="delete-modal"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                        onClick={cancelDelete}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.92, opacity: 0, y: 10 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.92, opacity: 0, y: 10 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            className="bg-[#212121] border border-white/10 rounded-2xl p-5 w-full max-w-sm shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
+                                    <FiTrash2 className="w-4 h-4 text-red-400" />
+                                </div>
+                                <h3 className="text-white font-semibold text-base">Delete conversation?</h3>
+                            </div>
+                            <p className="text-gray-400 text-sm mb-5 leading-relaxed">
+                                <span className="text-gray-200 font-medium">&ldquo;{deleteConfirm.title}&rdquo;</span> will be permanently deleted. This cannot be undone.
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={cancelDelete}
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 bg-white/8 hover:bg-white/12 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmDelete}
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors"
+                                >
+                                    Delete
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     );
 };
