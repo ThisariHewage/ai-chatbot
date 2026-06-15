@@ -249,8 +249,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                             >
                                                 <div
                                                     onClick={() => handleSelectChat(chat._id)}
-                                                    className={`group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'
-                                                        }`}
+                                                    className="group flex items-center gap-2 px-2 py-2 cursor-pointer transition-colors"
                                                 >
                                                     <BsPinAngleFill className="w-3 h-3 text-gray-400 flex-shrink-0" />
                                                     <span className="flex-1 text-sm text-gray-200 truncate">{chat.title}</span>
@@ -333,7 +332,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                             onClick={() => handleSelectChat(chat._id)}
                                                             className={`
                                     group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors
-                                    ${activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8'}
+                                    ${!chat.pinned && (activeChatId === chat._id ? 'bg-white/15' : 'hover:bg-white/8')}
                                   `}
                                                         >
                                                             {chat.pinned
