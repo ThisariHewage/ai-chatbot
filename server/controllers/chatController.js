@@ -2,7 +2,7 @@ const Chat = require('../models/Chat');
 const Message = require('../models/Message');
 
 /**
- * @desc    Create a new chat
+ * @desc    Create a new IntelliChat
  * @route   POST /api/chat/create
  * @access  Private
  */
@@ -11,7 +11,7 @@ const createChat = async (req, res, next) => {
         const { title } = req.body;
         const chat = await Chat.create({
             userId: req.user._id,
-            title: title || 'New Chat',
+            title: title || 'New IntelliChat',
         });
         res.status(201).json({ success: true, chat });
     } catch (error) {

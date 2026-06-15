@@ -32,7 +32,7 @@ const sendMessage = async (req, res, next) => {
         const userMessage = await Message.create({ chatId, role: 'user', content });
 
         // Auto-generate a smart title from the first message (via AI)
-        if (chat.title === 'New Chat') {
+        if (chat.title === 'New IntelliChat') {
             const title = await generateChatTitle(content);
             await Chat.findByIdAndUpdate(chatId, { title });
         }

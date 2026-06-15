@@ -44,7 +44,7 @@ const ChatPage = () => {
 
         // If no active chat, create one first
         if (!chatId) {
-            const result = await dispatch(newChat('New Chat'));
+            const result = await dispatch(newChat('New IntelliChat'));
             if (!result.payload) {
                 toast.error('Failed to create chat');
                 return;
@@ -120,16 +120,16 @@ const ChatPage = () => {
                             <FiMenu className="w-5 h-5" />
                         </button>
                         <span className="text-sm font-medium text-gray-300">
-                            {activeChatId ? 'IntelliChat' : 'New Chat'}
+                            {activeChatId ? 'IntelliChat' : 'New IntelliChat'}
                         </span>
                     </div>
 
                     <button
-                        onClick={() => dispatch(newChat('New Chat'))}
+                        onClick={() => dispatch(newChat('New IntelliChat'))}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors text-sm"
                     >
                         <FiEdit className="w-4 h-4" />
-                        <span className="hidden sm:inline">New chat</span>
+                        <span className="hidden sm:inline">New IntelliChat</span>
                     </button>
                 </header>
 

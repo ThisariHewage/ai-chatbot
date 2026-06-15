@@ -23,7 +23,7 @@ export const fetchChats = createAsyncThunk(
 
 export const newChat = createAsyncThunk(
     'chat/create',
-    async (title = 'New Chat', { rejectWithValue }) => {
+    async (title = 'New IntelliChat', { rejectWithValue }) => {
         try {
             const { data } = await createChat({ title });
             return data.chat;

@@ -9,7 +9,7 @@ const chatSchema = new mongoose.Schema(
         },
         title: {
             type: String,
-            default: 'New Chat',
+            default: 'New IntelliChat',
             trim: true,
             maxlength: [100, 'Title cannot exceed 100 characters'],
         },

@@ -44,7 +44,7 @@ const generateChatTitle = async (content) => {
         return response.choices[0].message.content.replace(/["']/g, '').trim();
     } catch (error) {
         console.error('Groq Title generation error:', error);
-        return 'New Chat';
+        return 'New IntelliChat';
     }
 };
 

@@ -13,7 +13,7 @@ const WelcomeScreen = ({ onSelectSuggestion }) => {
     const dispatch = useDispatch();
 
     const handleSuggestion = async (subtitle) => {
-        const result = await dispatch(newChat('New Chat'));
+        const result = await dispatch(newChat('New IntelliChat'));
         if (result.payload) {
             onSelectSuggestion(subtitle);
         }

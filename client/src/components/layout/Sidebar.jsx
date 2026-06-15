@@ -45,7 +45,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     );
 
     const handleNewChat = async () => {
-        const result = await dispatch(newChat('New Chat'));
+        const result = await dispatch(newChat('New IntelliChat'));
         if (result.payload) {
             navigate('/');
         }
@@ -137,14 +137,14 @@ const Sidebar = ({ isOpen, onClose }) => {
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
             >
-                {/* New Chat Button */}
+                {/* New IntelliChat Button */}
                 <div className="p-3 flex-shrink-0">
                     <button
                         onClick={handleNewChat}
                         className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl hover:bg-white/10 text-white text-sm transition-colors group"
                     >
                         <FiPlus className="w-4 h-4 flex-shrink-0" />
-                        <span>New chat</span>
+                        <span>New IntelliChat</span>
                     </button>
                 </div>
 
