@@ -72,6 +72,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     const handleNewChat = async () => {
         const result = await dispatch(newChat('New IntelliChat'));
         if (result.payload) {
+            toast.success('New chat started');
             navigate('/');
         }
         if (window.innerWidth < 768) onClose();
@@ -169,6 +170,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     };
 
     const pinnedChats = filteredChats.filter((c) => c.pinned && !c.archived);
+    const archivedChats = filteredChats.filter((c) => c.archived);
     const grouped = groupChats(filteredChats);
 
     return (
@@ -478,6 +480,82 @@ const Sidebar = ({ isOpen, onClose }) => {
                             </div>
                         );
                     })}
+
+                    {/* Archived Section */}
+                    {archivedChats.length > 0 && (
+                        <div className="mt-4 border-t border-white/5 pt-2">
+                            <button
+                                onClick={() => toggleSection('Archived')}
+                                className="w-full flex items-center justify-between group/header px-2 py-1.5"
+                            >
+                                <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider flex items-center gap-1">
+                                    <FiArchive className="w-3 h-3" /> Archived
+                                </p>
+                                <FiChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${collapsedSections['Archived'] ? '-rotate-90' : ''}`} />
+                            </button>
+                            <AnimatePresence>
+                                {!collapsedSections['Archived'] && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="relative"
+                                    >
+                                        {archivedChats.map((chat) => (
+                                            <motion.div
+                                                key={`archived-${chat._id}`}
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                exit={{ opacity: 0, x: -10 }}
+                                                transition={{ duration: 0.15 }}
+                                            >
+                                                <div
+                                                    onClick={() => handleSelectChat(chat._id)}
+                                                    className="group relative flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer transition-colors hover:bg-white/8 opacity-70 hover:opacity-100"
+                                                >
+                                                    <FiArchive className="w-3.5 h-3.5 text-gray-500 flex-shrink-0" />
+                                                    <span className="flex-1 text-sm text-gray-400 group-hover:text-gray-200 truncate">{chat.title}</span>
+
+                                                    {/* ⋯ menu button */}
+                                                    <div className={`${openMenuId === chat._id ? 'flex' : 'hidden group-hover:flex'} items-center flex-shrink-0 relative`}>
+                                                        <button
+                                                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === chat._id ? null : chat._id); }}
+                                                            className="p-1 text-gray-400 hover:text-white transition-colors rounded"
+                                                        >
+                                                            <FiMoreHorizontal className="w-3.5 h-3.5" />
+                                                        </button>
+
+                                                        <AnimatePresence>
+                                                            {openMenuId === chat._id && (
+                                                                <motion.div
+                                                                    ref={menuRef}
+                                                                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                                                    transition={{ duration: 0.1 }}
+                                                                    className="absolute right-0 top-7 z-40 w-44 bg-[#2a2a2a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <button onClick={(e) => handleArchive(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
+                                                                        <FiArchive className="w-3.5 h-3.5" />
+                                                                        Unarchive
+                                                                    </button>
+                                                                    <button onClick={(e) => handleDeleteChat(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-red-400 hover:bg-white/10 transition-colors">
+                                                                        <FiTrash2 className="w-3.5 h-3.5" />
+                                                                        Delete
+                                                                    </button>
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    )}
                 </div>
 
 

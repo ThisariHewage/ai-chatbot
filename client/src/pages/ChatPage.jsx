@@ -136,7 +136,12 @@ const ChatPage = () => {
                     </div>
 
                     <button
-                        onClick={() => dispatch(newChat('New IntelliChat'))}
+                        onClick={async () => {
+                            const result = await dispatch(newChat('New IntelliChat'));
+                            if (result.payload) {
+                                toast.success('New chat started');
+                            }
+                        }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors text-sm"
                     >
                         <FiEdit className="w-4 h-4" />
@@ -146,7 +151,7 @@ const ChatPage = () => {
 
                 {/* Messages area */}
                 <div className="flex-1 overflow-y-auto">
-                    {!activeChatId ? (
+                    {messages.length === 0 && !isStreaming ? (
                         <WelcomeScreen onSelectSuggestion={handleSuggestion} />
                     ) : (
                         <div className="max-w-3xl mx-auto">
