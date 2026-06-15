@@ -95,6 +95,81 @@ const sendMessage = async (req, res, next) => {
 };
 
 /**
+ * @desc    Edit a user message and re-generate AI response
+ * @route   PUT /api/message/:id
+ * @access  Private
+ */
+const editMessage = async (req, res, next) => {
+    try {
+        const { content } = req.body;
+        const messageId = req.params.id;
+
+        if (!content) {
+            return res.status(400).json({ success: false, message: 'Content is required.' });
+        }
+
+        // Find the message
+        const message = await Message.findById(messageId);
+        if (!message) {
+            return res.status(404).json({ success: false, message: 'Message not found.' });
+        }
+
+        // Verify ownership via chat
+        const chat = await Chat.findOne({ _id: message.chatId, userId: req.user._id });
+        if (!chat) {
+            return res.status(403).json({ success: false, message: 'Not authorized.' });
+        }
+
+        // Update the message content
+        message.content = content;
+        await message.save();
+
+        // Delete all messages created AFTER this one in the same chat
+        await Message.deleteMany({
+            chatId: message.chatId,
+            createdAt: { $gt: message.createdAt },
+        });
+
+        // Set up streaming for the new response
+        const history = await Message.find({ chatId: message.chatId }).sort({ createdAt: 1 }).limit(20);
+        const messageHistory = buildMessageHistory(history);
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('Access-Control-Allow-Origin', process.env.CLIENT_URL || '*');
+
+        const stream = await createChatStream(messageHistory);
+        let fullContent = '';
+
+        for await (const chunk of stream) {
+            const delta = chunk.choices[0]?.delta?.content || '';
+            if (delta) {
+                fullContent += delta;
+                res.write(`data: ${JSON.stringify({ delta })}\n\n`);
+            }
+        }
+
+        const assistantMessage = await Message.create({
+            chatId: message.chatId,
+            role: 'assistant',
+            content: fullContent,
+        });
+
+        res.write(`data: ${JSON.stringify({ done: true, userMessage: message, assistantMessage })}\n\n`);
+        res.end();
+    } catch (error) {
+        console.error('Message edit error:', error.message);
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, message: 'Failed to edit message.' });
+        } else {
+            res.write(`data: ${JSON.stringify({ error: 'Failed to complete re-generation.' })}\n\n`);
+            res.end();
+        }
+    }
+};
+
+/**
  * @desc    Get all messages for a chat
  * @route   GET /api/message/:chatId
  * @access  Private
@@ -119,4 +194,4 @@ const getMessages = async (req, res, next) => {
     }
 };
 
-module.exports = { sendMessage, getMessages };
+module.exports = { sendMessage, getMessages, editMessage };

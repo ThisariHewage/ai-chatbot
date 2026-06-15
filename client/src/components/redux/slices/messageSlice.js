@@ -58,6 +58,26 @@ const messageSlice = createSlice({
         clearAllMessages: (state) => {
             state.messagesByChat = {};
         },
+        removeMessagesAfter: (state, action) => {
+            const { chatId, messageId } = action.payload;
+            const messages = state.messagesByChat[chatId];
+            if (!messages) return;
+
+            const index = messages.findIndex((m) => m._id === messageId);
+            if (index !== -1) {
+                state.messagesByChat[chatId] = messages.slice(0, index + 1);
+            }
+        },
+        updateMessageInChat: (state, action) => {
+            const { chatId, messageId, content } = action.payload;
+            const messages = state.messagesByChat[chatId];
+            if (!messages) return;
+
+            const message = messages.find((m) => m._id === messageId);
+            if (message) {
+                message.content = content;
+            }
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -80,6 +100,8 @@ export const {
     setStreamError,
     clearMessages,
     clearAllMessages,
+    removeMessagesAfter,
+    updateMessageInChat,
 } = messageSlice.actions;
 
 export default messageSlice.reducer;
