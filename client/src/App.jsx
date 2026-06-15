@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
-import store from './redux/store';
+import store from './components/redux/store';
 import ProtectedRoute from './routes/ProtectedRoute';
 import ChatPage from './pages/ChatPage';
 import Login from './pages/Login';
