@@ -49,6 +49,10 @@ const Sidebar = ({ isOpen, onClose }) => {
     const menuRef = useRef(null);
 
     useEffect(() => {
+        dispatch(fetchChats());
+    }, [dispatch]);
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setOpenMenuId(null);
@@ -236,7 +240,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 className="w-full flex items-center justify-between group/header px-2 py-1.5"
                             >
                                 <p className="text-[11px] text-gray-500 font-medium uppercase tracking-wider flex items-center gap-1">
-                                    <BsPinAngleFill className="w-3 h-3" /> Pinned
+                                    Pinned
                                 </p>
                                 <FiChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${collapsedSections['Pinned'] ? '-rotate-90' : ''}`} />
                             </button>
