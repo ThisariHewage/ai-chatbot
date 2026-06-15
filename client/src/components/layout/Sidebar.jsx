@@ -162,7 +162,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         const groups = { Today: [], Yesterday: [], 'Previous 7 Days': [], Older: [] };
 
         chatList.forEach((chat) => {
-            if (chat.archived) return; // hide archived
+            if (chat.archived || chat.pinned) return; // Hide archived and pinned from the main list
             const d = new Date(chat.createdAt);
             if (d >= today) groups['Today'].push(chat);
             else if (d >= yesterday) groups['Yesterday'].push(chat);
