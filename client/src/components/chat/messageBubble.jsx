@@ -60,7 +60,7 @@ const CodeBlock = ({ children, className }) => {
     );
 };
 
-const MessageBubble = ({ message }) => {
+const MessageBubble = ({ message, readOnly = false }) => {
     const dispatch = useDispatch();
     const [copied, setCopied] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -285,7 +285,7 @@ const MessageBubble = ({ message }) => {
                 </AnimatePresence>
 
                 {/* Actions button */}
-                {!isEditing && (
+                {!isEditing && !readOnly && (
                     <div
                         className={`mt-2 flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity ${isUser ? 'flex-row-reverse' : ''
                             }`}

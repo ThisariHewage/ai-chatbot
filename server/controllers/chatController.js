@@ -148,8 +148,36 @@ const shareChat = async (req, res, next) => {
             chat.shareToken = require('crypto').randomUUID();
             await chat.save();
         }
-        const shareUrl = `${req.protocol}://${req.get('host')}/share/${chat.shareToken}`;
+        const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        const shareUrl = `${clientUrl.replace(/\/$/, '')}/share/${chat.shareToken}`;
         res.status(200).json({ success: true, shareUrl, shareToken: chat.shareToken });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Get a shared chat by token
+ * @route   GET /api/chat/share/:token
+ * @access  Public
+ */
+const getSharedChat = async (req, res, next) => {
+    try {
+        const chat = await Chat.findOne({ shareToken: req.params.token }).select(
+            'title createdAt updatedAt shareToken'
+        );
+
+        if (!chat) {
+            return res.status(404).json({ success: false, message: 'Shared chat not found.' });
+        }
+
+        const messages = await Message.find({ chatId: chat._id }).sort({ createdAt: 1 });
+
+        res.status(200).json({
+            success: true,
+            chat,
+            messages,
+        });
     } catch (error) {
         next(error);
     }
@@ -163,4 +191,5 @@ module.exports = {
     deleteChat,
     deleteAllChats,
     shareChat,
+    getSharedChat,
 };

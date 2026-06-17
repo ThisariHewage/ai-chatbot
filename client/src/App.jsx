@@ -7,6 +7,7 @@ import ChatPage from './pages/ChatPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import SharedChatPage from './pages/SharedChatPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/share/:token" element={<SharedChatPage />} />
 
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>

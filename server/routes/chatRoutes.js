@@ -8,8 +8,11 @@ const {
     deleteChat,
     deleteAllChats,
     shareChat,
+    getSharedChat,
 } = require('../controllers/chatController');
 const { protect } = require('../middleware/authMiddleware');
+
+router.get('/share/:token', getSharedChat);
 
 // All chat routes are protected
 router.use(protect);
