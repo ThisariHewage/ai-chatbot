@@ -24,6 +24,12 @@ const fileFilter = (req, file, cb) => {
         'text/plain',
         'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'audio/webm',
+        'audio/mpeg',
+        'audio/mp4',
+        'audio/ogg',
+        'audio/wav',
+        'audio/x-wav',
     ];
 
     if (allowedTypes.includes(file.mimetype)) {

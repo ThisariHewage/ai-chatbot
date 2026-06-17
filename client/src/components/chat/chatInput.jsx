@@ -1,11 +1,20 @@
-import { useState, useRef, useEffect } from 'react';
-import { FiSend, FiStopCircle, FiPaperclip, FiX, FiFile } from 'react-icons/fi';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { FiSend, FiStopCircle, FiPaperclip, FiX, FiFile, FiMic } from 'react-icons/fi';
 
 const ChatInput = ({ onSend, disabled, isStreaming }) => {
     const [input, setInput] = useState('');
     const [files, setFiles] = useState([]);
+    const [isRecording, setIsRecording] = useState(false);
     const textareaRef = useRef(null);
     const fileInputRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const recordingChunksRef = useRef([]);
+    const recordingStreamRef = useRef(null);
+
+    const stopRecordingStream = useCallback(() => {
+        recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
+        recordingStreamRef.current = null;
+    }, []);
 
     // Auto-resize textarea
     useEffect(() => {
@@ -15,10 +24,20 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
         ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
     }, [input]);
 
+    useEffect(() => {
+        return () => {
+            if (mediaRecorderRef.current?.state === 'recording') {
+                mediaRecorderRef.current.stop();
+            }
+            stopRecordingStream();
+        };
+    }, [stopRecordingStream]);
+
     const handleSend = () => {
         const trimmed = input.trim();
         if ((!trimmed && files.length === 0) || disabled) return;
-        onSend(trimmed || '(attached files)', files);
+        const hasAudio = files.some((file) => file.type.startsWith('audio/'));
+        onSend(trimmed || (hasAudio ? '(voice message)' : '(attached files)'), files);
         setInput('');
         setFiles([]);
         // Reset height
@@ -61,6 +80,56 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
         setFiles((prev) => prev.filter((_, i) => i !== index));
     };
 
+    const startRecording = async () => {
+        if (disabled || isRecording || files.length >= 5) return;
+
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+            return;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            recordingChunksRef.current = [];
+            recordingStreamRef.current = stream;
+
+            recorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordingChunksRef.current.push(event.data);
+                }
+            };
+
+            recorder.onstop = () => {
+                const blob = new Blob(recordingChunksRef.current, { type: recorder.mimeType || 'audio/webm' });
+                recordingChunksRef.current = [];
+                stopRecordingStream();
+
+                if (blob.size === 0) return;
+
+                const extension = blob.type.includes('ogg') ? 'ogg' : 'webm';
+                const file = new File([blob], `voice-message-${Date.now()}.${extension}`, {
+                    type: blob.type || 'audio/webm',
+                });
+
+                setFiles((prev) => [...prev, file].slice(0, 5));
+            };
+
+            mediaRecorderRef.current = recorder;
+            recorder.start();
+            setIsRecording(true);
+        } catch {
+            stopRecordingStream();
+            setIsRecording(false);
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current?.state === 'recording') {
+            mediaRecorderRef.current.stop();
+        }
+        setIsRecording(false);
+    };
+
     const formatFileSize = (bytes) => {
         if (bytes < 1024) return bytes + ' B';
         if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -84,6 +153,10 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                                         alt={file.name}
                                         className="w-10 h-10 rounded object-cover"
                                     />
+                                ) : file.type.startsWith('audio/') ? (
+                                    <div className="w-10 h-10 rounded bg-red-500/20 flex items-center justify-center">
+                                        <FiMic className="w-5 h-5 text-red-300" />
+                                    </div>
                                 ) : (
                                     <div className="w-10 h-10 rounded bg-blue-500/20 flex items-center justify-center">
                                         <FiFile className="w-5 h-5 text-blue-400" />
@@ -123,7 +196,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                             ref={fileInputRef}
                             type="file"
                             multiple
-                            accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,.doc,.docx"
+                            accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,text/plain,.doc,.docx,audio/webm,audio/mpeg,audio/mp4,audio/ogg,audio/wav"
                             onChange={handleFileSelect}
                             className="hidden"
                         />
@@ -143,6 +216,21 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                     />
 
                     <div className="flex items-center px-2 pb-2">
+                        <button
+                            onClick={isRecording ? stopRecording : startRecording}
+                            disabled={disabled || files.length >= 5}
+                            className={`mr-1 w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed ${isRecording
+                                ? 'bg-red-500 text-white hover:bg-red-600'
+                                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                                }`}
+                            title={isRecording ? 'Stop recording' : 'Record voice message'}
+                        >
+                            {isRecording ? (
+                                <FiStopCircle className="w-4 h-4" />
+                            ) : (
+                                <FiMic className="w-4 h-4" />
+                            )}
+                        </button>
                         <button
                             onClick={handleSend}
                             disabled={(!input.trim() && files.length === 0) || disabled}

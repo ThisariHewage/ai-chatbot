@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { FiCopy, FiCheck, FiUser, FiEdit2, FiX, FiCheckCircle, FiDownload, FiFile } from 'react-icons/fi';
+import { FiCopy, FiCheck, FiUser, FiEdit2, FiX, FiCheckCircle, FiDownload, FiFile, FiMic } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch } from 'react-redux';
 import { editMessageStream } from '../../services/api';
@@ -242,6 +242,19 @@ const MessageBubble = ({ message, readOnly = false }) => {
                                                     className="max-w-[200px] max-h-[200px] rounded-lg object-cover border border-white/10 hover:border-white/30 transition-colors cursor-pointer"
                                                 />
                                             </a>
+                                        ) : att.fileType === 'audio' ? (
+                                            <div
+                                                key={idx}
+                                                className="flex items-center gap-3 bg-[#1e1e1e] rounded-lg px-3 py-2 border border-white/10"
+                                            >
+                                                <div className="w-8 h-8 rounded bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                                                    <FiMic className="w-4 h-4 text-red-300" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <span className="block text-xs text-white truncate max-w-[190px]">{att.filename}</span>
+                                                    <audio controls src={src} className="mt-1 h-8 max-w-[220px]" />
+                                                </div>
+                                            </div>
                                         ) : (
                                             <a
                                                 key={idx}

@@ -32,7 +32,11 @@ const sendMessage = async (req, res, next) => {
         const attachments = (req.files || []).map((file) => ({
             url: `/uploads/${file.filename}`,
             filename: file.originalname,
-            fileType: file.mimetype.startsWith('image/') ? 'image' : 'file',
+            fileType: file.mimetype.startsWith('image/')
+                ? 'image'
+                : file.mimetype.startsWith('audio/')
+                    ? 'audio'
+                    : 'file',
             size: file.size,
         }));
 

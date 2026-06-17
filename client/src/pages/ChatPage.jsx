@@ -56,7 +56,11 @@ const ChatPage = () => {
         const optimisticAttachments = files.map((f) => ({
             url: URL.createObjectURL(f),
             filename: f.name,
-            fileType: f.type.startsWith('image/') ? 'image' : 'file',
+            fileType: f.type.startsWith('image/')
+                ? 'image'
+                : f.type.startsWith('audio/')
+                    ? 'audio'
+                    : 'file',
             size: f.size,
             _blob: true,
         }));
