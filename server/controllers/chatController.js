@@ -196,9 +196,19 @@ const continueSharedChat = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Shared chat not found.' });
         }
 
+        const existingChat = await Chat.findOne({
+            userId: req.user._id,
+            continuedFromShareToken: req.params.token,
+        });
+
+        if (existingChat) {
+            return res.status(200).json({ success: true, chat: existingChat });
+        }
+
         const chat = await Chat.create({
             userId: req.user._id,
             title: `Continued: ${sourceChat.title}`,
+            continuedFromShareToken: req.params.token,
         });
 
         const sourceMessages = await Message.find({ chatId: sourceChat._id }).sort({ createdAt: 1 });
@@ -215,6 +225,16 @@ const continueSharedChat = async (req, res, next) => {
 
         res.status(201).json({ success: true, chat });
     } catch (error) {
+        if (error.code === 11000) {
+            const existingChat = await Chat.findOne({
+                userId: req.user._id,
+                continuedFromShareToken: req.params.token,
+            });
+
+            if (existingChat) {
+                return res.status(200).json({ success: true, chat: existingChat });
+            }
+        }
         next(error);
     }
 };

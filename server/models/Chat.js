@@ -25,11 +25,18 @@ const chatSchema = new mongoose.Schema(
         shareToken: {
             type: String,
         },
+        continuedFromShareToken: {
+            type: String,
+        },
     },
     { timestamps: true }
 );
 
 // Index for faster queries
 chatSchema.index({ userId: 1, createdAt: -1 });
+chatSchema.index(
+    { userId: 1, continuedFromShareToken: 1 },
+    { unique: true, partialFilterExpression: { continuedFromShareToken: { $exists: true } } }
+);
 
 module.exports = mongoose.model('Chat', chatSchema);
