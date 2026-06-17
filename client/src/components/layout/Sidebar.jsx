@@ -709,11 +709,18 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 mb-4">
-                                <span className="flex-1 truncate text-xs text-gray-300">{shareDialog.url}</span>
+                            <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 mb-4">
+                                <a
+                                    href={shareDialog.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block truncate text-sm text-blue-400 underline underline-offset-2 hover:text-blue-300"
+                                >
+                                    {shareDialog.url}
+                                </a>
                                 <button
                                     onClick={handleCopyShareLink}
-                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white text-black hover:bg-gray-200 transition-colors"
+                                    className="mt-3 flex w-full items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-white text-black hover:bg-gray-200 transition-colors"
                                 >
                                     {shareCopied ? (
                                         <>
@@ -729,17 +736,18 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 </button>
                             </div>
 
-                            <div className="grid grid-cols-5 gap-2">
+                            <div className="flex items-center justify-center gap-2">
                                 {socialShareOptions.map(({ label, icon: Icon, href, accent }) => (
                                     <a
                                         key={label}
                                         href={href}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-3 text-[11px] text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                        aria-label={`Share on ${label}`}
+                                        title={label}
+                                        className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
                                     >
                                         <Icon className={`w-4 h-4 ${accent}`} />
-                                        <span className="max-w-full truncate">{label}</span>
                                     </a>
                                 ))}
                             </div>
