@@ -14,7 +14,15 @@ const Login = () => {
     const [showPass, setShowPass] = useState(false);
 
     useEffect(() => {
-        if (isAuthenticated) navigate('/');
+        if (isAuthenticated) {
+            const pendingShareToken = localStorage.getItem('pendingShareToken');
+            if (pendingShareToken) {
+                localStorage.removeItem('pendingShareToken');
+                navigate(`/share/${pendingShareToken}`);
+                return;
+            }
+            navigate('/');
+        }
         return () => dispatch(clearError());
     }, [isAuthenticated, navigate, dispatch]);
 

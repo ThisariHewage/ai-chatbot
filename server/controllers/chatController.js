@@ -171,13 +171,49 @@ const getSharedChat = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Shared chat not found.' });
         }
 
-        const messages = await Message.find({ chatId: chat._id }).sort({ createdAt: 1 });
+        const messageCount = await Message.countDocuments({ chatId: chat._id });
 
         res.status(200).json({
             success: true,
             chat,
-            messages,
+            messageCount,
         });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * @desc    Copy a shared chat into the current user's account
+ * @route   POST /api/chat/share/:token/continue
+ * @access  Private
+ */
+const continueSharedChat = async (req, res, next) => {
+    try {
+        const sourceChat = await Chat.findOne({ shareToken: req.params.token });
+
+        if (!sourceChat) {
+            return res.status(404).json({ success: false, message: 'Shared chat not found.' });
+        }
+
+        const chat = await Chat.create({
+            userId: req.user._id,
+            title: `Continued: ${sourceChat.title}`,
+        });
+
+        const sourceMessages = await Message.find({ chatId: sourceChat._id }).sort({ createdAt: 1 });
+        if (sourceMessages.length > 0) {
+            await Message.insertMany(
+                sourceMessages.map((message) => ({
+                    chatId: chat._id,
+                    role: message.role,
+                    content: message.content,
+                    attachments: message.attachments,
+                }))
+            );
+        }
+
+        res.status(201).json({ success: true, chat });
     } catch (error) {
         next(error);
     }
@@ -192,4 +228,5 @@ module.exports = {
     deleteAllChats,
     shareChat,
     getSharedChat,
+    continueSharedChat,
 };

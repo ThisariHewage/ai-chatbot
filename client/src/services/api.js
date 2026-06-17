@@ -47,6 +47,7 @@ export const pinChat = (id, pinned) => API.put(`/chat/${id}`, { pinned });
 export const archiveChat = (id, archived) => API.put(`/chat/${id}`, { archived });
 export const shareChatLink = (id) => API.post(`/chat/${id}/share`);
 export const getSharedChat = (token) => API.get(`/chat/share/${token}`);
+export const continueSharedChat = (token) => API.post(`/chat/share/${token}/continue`);
 
 
 // ─── Messages ─────────────────────────────────────────────────────────────────
