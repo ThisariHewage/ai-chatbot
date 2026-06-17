@@ -15,8 +15,12 @@ import {
     FiMoreHorizontal,
     FiLink,
     FiArchive,
+    FiCopy,
+    FiMail,
 } from 'react-icons/fi';
 import { BsPinAngle, BsPinAngleFill } from 'react-icons/bs';
+import { FaFacebookF, FaLinkedinIn, FaWhatsapp } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import {
     fetchChats,
     newChat,
@@ -46,6 +50,9 @@ const Sidebar = ({ isOpen, onClose }) => {
     const [deleteConfirm, setDeleteConfirm] = useState(null); // { id, title }
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+    const [shareDialog, setShareDialog] = useState(null);
+    const [shareCopied, setShareCopied] = useState(false);
+    const [shareLoadingId, setShareLoadingId] = useState(null);
     const [openMenuId, setOpenMenuId] = useState(null); // ⋯ context menu
     const [collapsedSections, setCollapsedSections] = useState({}); // { 'Pinned': true, 'Today': false, ... }
     const menuRef = useRef(null);
@@ -114,12 +121,59 @@ const Sidebar = ({ isOpen, onClose }) => {
     const handleShare = async (e, chat) => {
         e.stopPropagation();
         setOpenMenuId(null);
+        setShareLoadingId(chat._id);
         const result = await dispatch(generateShareLink(chat._id));
+        setShareLoadingId(null);
         if (result.payload?.shareUrl) {
-            await navigator.clipboard.writeText(result.payload.shareUrl);
-            toast.success('Share link copied!');
+            setShareCopied(false);
+            setShareDialog({ title: chat.title, url: result.payload.shareUrl });
         }
     };
+
+    const handleCopyShareLink = async () => {
+        if (!shareDialog?.url) return;
+        await navigator.clipboard.writeText(shareDialog.url);
+        setShareCopied(true);
+        toast.success('Share link copied!');
+    };
+
+    const shareText = shareDialog
+        ? `Check out this IntelliChat conversation: ${shareDialog.title}`
+        : '';
+    const encodedShareText = encodeURIComponent(shareText);
+    const encodedShareUrl = encodeURIComponent(shareDialog?.url || '');
+    const socialShareOptions = shareDialog ? [
+        {
+            label: 'WhatsApp',
+            icon: FaWhatsapp,
+            href: `https://wa.me/?text=${encodedShareText}%20${encodedShareUrl}`,
+            accent: 'text-emerald-400',
+        },
+        {
+            label: 'Facebook',
+            icon: FaFacebookF,
+            href: `https://www.facebook.com/sharer/sharer.php?u=${encodedShareUrl}`,
+            accent: 'text-blue-400',
+        },
+        {
+            label: 'X',
+            icon: FaXTwitter,
+            href: `https://twitter.com/intent/tweet?text=${encodedShareText}&url=${encodedShareUrl}`,
+            accent: 'text-gray-100',
+        },
+        {
+            label: 'LinkedIn',
+            icon: FaLinkedinIn,
+            href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedShareUrl}`,
+            accent: 'text-sky-400',
+        },
+        {
+            label: 'Email',
+            icon: FiMail,
+            href: `mailto:?subject=${encodeURIComponent('IntelliChat conversation')}&body=${encodedShareText}%0A%0A${encodedShareUrl}`,
+            accent: 'text-amber-300',
+        },
+    ] : [];
 
     const handleStartRename = (e, chat) => {
         e.stopPropagation();
@@ -341,7 +395,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                                         </button>
                                                                         <button onClick={(e) => handleShare(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
                                                                             <FiLink className="w-3.5 h-3.5" />
-                                                                            Share link
+                                                                            {shareLoadingId === chat._id ? 'Preparing...' : 'Share link'}
                                                                         </button>
                                                                     </motion.div>
                                                                 )}
@@ -462,7 +516,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                                                             </button>
                                                                             <button onClick={(e) => handleShare(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
                                                                                 <FiLink className="w-3.5 h-3.5" />
-                                                                                Share link
+                                                                                {shareLoadingId === chat._id ? 'Preparing...' : 'Share link'}
                                                                             </button>
                                                                             <button onClick={(e) => handleArchive(e, chat)} className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-gray-200 hover:bg-white/10 transition-colors">
                                                                                 <FiArchive className="w-3.5 h-3.5" />
@@ -625,6 +679,74 @@ const Sidebar = ({ isOpen, onClose }) => {
 
             {/* Delete Confirmation Modal */}
             <AnimatePresence>
+                {shareDialog && (
+                    <motion.div
+                        key="share-modal"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                        onClick={() => setShareDialog(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.92, opacity: 0, y: 10 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.92, opacity: 0, y: 10 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                            className="bg-[#212121] border border-white/10 rounded-2xl p-5 w-full max-w-sm shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="flex items-start justify-between gap-3 mb-4">
+                                <div className="min-w-0">
+                                    <h3 className="text-white font-semibold text-base">Share conversation</h3>
+                                    <p className="text-gray-400 text-sm mt-1 truncate">{shareDialog.title}</p>
+                                </div>
+                                <button
+                                    onClick={() => setShareDialog(null)}
+                                    className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                                >
+                                    <FiX className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 mb-4">
+                                <span className="flex-1 truncate text-xs text-gray-300">{shareDialog.url}</span>
+                                <button
+                                    onClick={handleCopyShareLink}
+                                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-white text-black hover:bg-gray-200 transition-colors"
+                                >
+                                    {shareCopied ? (
+                                        <>
+                                            <FiCheck className="w-3.5 h-3.5" />
+                                            Copied
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiCopy className="w-3.5 h-3.5" />
+                                            Copy
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-5 gap-2">
+                                {socialShareOptions.map(({ label, icon: Icon, href, accent }) => (
+                                    <a
+                                        key={label}
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex flex-col items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-3 text-[11px] text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                    >
+                                        <Icon className={`w-4 h-4 ${accent}`} />
+                                        <span className="max-w-full truncate">{label}</span>
+                                    </a>
+                                ))}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
                 {deleteConfirm && (
                     <motion.div
                         key="delete-modal"
