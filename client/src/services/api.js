@@ -53,6 +53,22 @@ export const continueSharedChat = (token) => API.post(`/chat/share/${token}/cont
 // ─── Messages ─────────────────────────────────────────────────────────────────
 export const getMessages = (chatId) => API.get(`/message/${chatId}`);
 
+const getStreamErrorMessage = async (response, fallback) => {
+    try {
+        const contentType = response.headers.get('content-type') || '';
+
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            return data.detail || data.message || fallback;
+        }
+
+        const text = await response.text();
+        return text || fallback;
+    } catch {
+        return fallback;
+    }
+};
+
 // Streaming fetch for AI responses (uses native fetch for SSE)
 export const sendMessageStream = async (
     chatId,
@@ -97,7 +113,7 @@ export const sendMessageStream = async (
         const response = await fetch(`${baseURL}/message/send`, fetchOptions);
 
         if (!response.ok) {
-            throw new Error('Failed to send message');
+            throw new Error(await getStreamErrorMessage(response, 'Failed to send message'));
         }
 
         const reader = response.body.getReader();
@@ -157,7 +173,7 @@ export const editMessageStream = async (
         });
 
         if (!response.ok) {
-            throw new Error('Failed to update message');
+            throw new Error(await getStreamErrorMessage(response, 'Failed to update message'));
         }
 
         const reader = response.body.getReader();

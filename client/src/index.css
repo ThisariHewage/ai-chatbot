@@ -110,7 +110,8 @@
         @apply text-[15px] leading-7 text-gray-100;
     }
 
-    .prose-chat p {
+    .prose-chat p,
+    .prose-chat .markdown-paragraph {
         @apply mb-3 last:mb-0;
     }
 

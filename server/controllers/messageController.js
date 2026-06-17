@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Chat = require('../models/Chat');
+const mongoose = require('mongoose');
 const {
     createChatStream,
     buildMessageHistory,
@@ -19,6 +20,13 @@ const sendMessage = async (req, res, next) => {
             return res.status(400).json({
                 success: false,
                 message: 'chatId and content are required.',
+            });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(chatId)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid chat ID.',
             });
         }
 
@@ -49,8 +57,8 @@ const sendMessage = async (req, res, next) => {
             await Chat.findByIdAndUpdate(chatId, { title });
         }
 
-        // Fetch conversation history for context
-        const history = await Message.find({ chatId }).sort({ createdAt: 1 }).limit(20);
+        // Fetch the latest conversation window, then restore chronological order.
+        const history = (await Message.find({ chatId }).sort({ createdAt: -1 }).limit(20)).reverse();
         const messageHistory = buildMessageHistory(history);
 
         // Set SSE headers for streaming
@@ -74,6 +82,10 @@ const sendMessage = async (req, res, next) => {
         }
         console.log('Stream finished, full content length:', fullContent.length);
 
+        if (!fullContent.trim()) {
+            throw new Error('AI service returned an empty response.');
+        }
+
         // Save complete AI response to DB
         const assistantMessage = await Message.create({
             chatId,
@@ -87,11 +99,15 @@ const sendMessage = async (req, res, next) => {
         );
         res.end();
     } catch (error) {
-        console.error('Message send error:', error.message);
+        console.error('Message send error:', error);
 
         let errorMessage = 'AI service error. Please try again.';
         if (error.status === 429) {
-            errorMessage = 'Your OpenAI API quota has been exceeded. Please check your billing details.';
+            errorMessage = 'Your Groq API quota has been exceeded. Please check your billing details.';
+        } else if (error.status === 401 || error.status === 403) {
+            errorMessage = 'Groq API authentication failed. Please check your API key.';
+        } else if (error.status === 400 && error.error?.message) {
+            errorMessage = error.error.message;
         }
 
         if (res.headersSent) {
@@ -101,6 +117,9 @@ const sendMessage = async (req, res, next) => {
             res.status(error.status || 500).json({
                 success: false,
                 message: errorMessage,
+                ...(process.env.NODE_ENV === 'development' && {
+                    detail: error.error?.message || error.message,
+                }),
             });
         }
     }
@@ -118,6 +137,10 @@ const editMessage = async (req, res, next) => {
 
         if (!content) {
             return res.status(400).json({ success: false, message: 'Content is required.' });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(messageId)) {
+            return res.status(400).json({ success: false, message: 'Invalid message ID.' });
         }
 
         // Find the message
@@ -143,7 +166,7 @@ const editMessage = async (req, res, next) => {
         });
 
         // Set up streaming for the new response
-        const history = await Message.find({ chatId: message.chatId }).sort({ createdAt: 1 }).limit(20);
+        const history = (await Message.find({ chatId: message.chatId }).sort({ createdAt: -1 }).limit(20)).reverse();
         const messageHistory = buildMessageHistory(history);
 
         res.setHeader('Content-Type', 'text/event-stream');
@@ -162,6 +185,10 @@ const editMessage = async (req, res, next) => {
             }
         }
 
+        if (!fullContent.trim()) {
+            throw new Error('AI service returned an empty response.');
+        }
+
         const assistantMessage = await Message.create({
             chatId: message.chatId,
             role: 'assistant',
@@ -171,11 +198,23 @@ const editMessage = async (req, res, next) => {
         res.write(`data: ${JSON.stringify({ done: true, userMessage: message, assistantMessage })}\n\n`);
         res.end();
     } catch (error) {
-        console.error('Message edit error:', error.message);
+        console.error('Message edit error:', error);
+        const errorMessage = error.status === 401 || error.status === 403
+            ? 'Groq API authentication failed. Please check your API key.'
+            : error.status === 429
+                ? 'Your Groq API quota has been exceeded. Please check your billing details.'
+                : 'Failed to complete re-generation.';
+
         if (!res.headersSent) {
-            res.status(500).json({ success: false, message: 'Failed to edit message.' });
+            res.status(error.status || 500).json({
+                success: false,
+                message: errorMessage,
+                ...(process.env.NODE_ENV === 'development' && {
+                    detail: error.error?.message || error.message,
+                }),
+            });
         } else {
-            res.write(`data: ${JSON.stringify({ error: 'Failed to complete re-generation.' })}\n\n`);
+            res.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
             res.end();
         }
     }
@@ -188,6 +227,10 @@ const editMessage = async (req, res, next) => {
  */
 const getMessages = async (req, res, next) => {
     try {
+        if (!mongoose.Types.ObjectId.isValid(req.params.chatId)) {
+            return res.status(400).json({ success: false, message: 'Invalid chat ID.' });
+        }
+
         const chat = await Chat.findOne({
             _id: req.params.chatId,
             userId: req.user._id,

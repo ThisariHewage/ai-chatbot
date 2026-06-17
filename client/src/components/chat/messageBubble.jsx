@@ -279,8 +279,16 @@ const MessageBubble = ({ message, readOnly = false }) => {
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
+                                    p({ children }) {
+                                        return <div className="markdown-paragraph">{children}</div>;
+                                    },
                                     code({ node, inline, className, children, ...props }) {
-                                        if (inline) {
+                                        const isBlock = !inline && (
+                                            className?.startsWith('language-') ||
+                                            node?.position?.start.line !== node?.position?.end.line
+                                        );
+
+                                        if (!isBlock) {
                                             return (
                                                 <code className={className} {...props}>
                                                     {children}
