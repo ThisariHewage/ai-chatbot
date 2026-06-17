@@ -4,8 +4,39 @@ const mongoose = require('mongoose');
 const {
     createChatStream,
     buildMessageHistory,
-    generateChatTitle,
 } = require('../services/groqService');
+
+const createLocalChatTitle = (content) => {
+    const normalized = content
+        .replace(/\s+/g, ' ')
+        .replace(/[`*_#>[\]()]/g, '')
+        .trim();
+
+    if (!normalized) return 'New IntelliChat';
+    return normalized.length > 50 ? `${normalized.slice(0, 47)}...` : normalized;
+};
+
+const getGroqErrorMessage = (error) => {
+    const upstreamMessage = error.error?.message || error.message || '';
+
+    if (error.status === 413 && upstreamMessage.includes('tokens per minute')) {
+        return 'This conversation is too large for the current Groq rate limit. I trimmed context for future requests; please try again in a moment.';
+    }
+
+    if (error.status === 429) {
+        return 'Groq is rate-limiting requests right now. Please wait a moment and try again.';
+    }
+
+    if (error.status === 401 || error.status === 403) {
+        return 'Groq API authentication failed. Please check your API key.';
+    }
+
+    if (error.status === 400 && error.error?.message) {
+        return error.error.message;
+    }
+
+    return 'AI service error. Please try again.';
+};
 
 /**
  * @desc    Send a message and stream back the AI response (SSE)
@@ -51,14 +82,14 @@ const sendMessage = async (req, res, next) => {
         // Save user message to DB
         const userMessage = await Message.create({ chatId, role: 'user', content, attachments });
 
-        // Auto-generate a smart title from the first message (via AI)
+        // Title locally to avoid spending an extra model request before the reply.
         if (chat.title === 'New IntelliChat') {
-            const title = await generateChatTitle(content);
+            const title = createLocalChatTitle(content);
             await Chat.findByIdAndUpdate(chatId, { title });
         }
 
         // Fetch the latest conversation window, then restore chronological order.
-        const history = (await Message.find({ chatId }).sort({ createdAt: -1 }).limit(20)).reverse();
+        const history = (await Message.find({ chatId }).sort({ createdAt: -1 }).limit(12)).reverse();
         const messageHistory = buildMessageHistory(history);
 
         // Set SSE headers for streaming
@@ -101,14 +132,7 @@ const sendMessage = async (req, res, next) => {
     } catch (error) {
         console.error('Message send error:', error);
 
-        let errorMessage = 'AI service error. Please try again.';
-        if (error.status === 429) {
-            errorMessage = 'Your Groq API quota has been exceeded. Please check your billing details.';
-        } else if (error.status === 401 || error.status === 403) {
-            errorMessage = 'Groq API authentication failed. Please check your API key.';
-        } else if (error.status === 400 && error.error?.message) {
-            errorMessage = error.error.message;
-        }
+        const errorMessage = getGroqErrorMessage(error);
 
         if (res.headersSent) {
             res.write(`data: ${JSON.stringify({ error: errorMessage })}\n\n`);
@@ -166,7 +190,7 @@ const editMessage = async (req, res, next) => {
         });
 
         // Set up streaming for the new response
-        const history = (await Message.find({ chatId: message.chatId }).sort({ createdAt: -1 }).limit(20)).reverse();
+        const history = (await Message.find({ chatId: message.chatId }).sort({ createdAt: -1 }).limit(12)).reverse();
         const messageHistory = buildMessageHistory(history);
 
         res.setHeader('Content-Type', 'text/event-stream');
@@ -199,11 +223,7 @@ const editMessage = async (req, res, next) => {
         res.end();
     } catch (error) {
         console.error('Message edit error:', error);
-        const errorMessage = error.status === 401 || error.status === 403
-            ? 'Groq API authentication failed. Please check your API key.'
-            : error.status === 429
-                ? 'Your Groq API quota has been exceeded. Please check your billing details.'
-                : 'Failed to complete re-generation.';
+        const errorMessage = getGroqErrorMessage(error);
 
         if (!res.headersSent) {
             res.status(error.status || 500).json({

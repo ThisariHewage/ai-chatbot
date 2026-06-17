@@ -59,7 +59,7 @@ const getStreamErrorMessage = async (response, fallback) => {
 
         if (contentType.includes('application/json')) {
             const data = await response.json();
-            return data.detail || data.message || fallback;
+            return data.message || data.detail || fallback;
         }
 
         const text = await response.text();

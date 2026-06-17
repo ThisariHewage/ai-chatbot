@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { isValidElement, useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -282,20 +282,23 @@ const MessageBubble = ({ message, readOnly = false }) => {
                                     p({ children }) {
                                         return <div className="markdown-paragraph">{children}</div>;
                                     },
-                                    code({ node, inline, className, children, ...props }) {
-                                        const isBlock = !inline && (
-                                            className?.startsWith('language-') ||
-                                            node?.position?.start.line !== node?.position?.end.line
-                                        );
-
-                                        if (!isBlock) {
+                                    pre({ children }) {
+                                        if (isValidElement(children) && children.type === 'code') {
                                             return (
-                                                <code className={className} {...props}>
-                                                    {children}
-                                                </code>
+                                                <CodeBlock className={children.props.className}>
+                                                    {children.props.children}
+                                                </CodeBlock>
                                             );
                                         }
-                                        return <CodeBlock className={className}>{children}</CodeBlock>;
+
+                                        return <pre>{children}</pre>;
+                                    },
+                                    code({ className, children, ...props }) {
+                                        return (
+                                            <code className={className} {...props}>
+                                                {children}
+                                            </code>
+                                        );
                                     },
                                 }}
                             >

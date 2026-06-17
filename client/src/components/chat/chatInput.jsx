@@ -1,5 +1,25 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { FiSend, FiStopCircle, FiPaperclip, FiX, FiFile, FiMic } from 'react-icons/fi';
+import toast from 'react-hot-toast';
+
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const ACCEPTED_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'text/plain',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'audio/webm',
+    'audio/mpeg',
+    'audio/mp4',
+    'audio/ogg',
+    'audio/wav',
+    'audio/x-wav',
+];
 
 const ChatInput = ({ onSend, disabled, isStreaming }) => {
     const [input, setInput] = useState('');
@@ -14,6 +34,47 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
     const stopRecordingStream = useCallback(() => {
         recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
         recordingStreamRef.current = null;
+    }, []);
+
+    const formatFileSize = (bytes) => {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    };
+
+    const addFiles = useCallback((incomingFiles) => {
+        if (incomingFiles.length === 0) return;
+
+        setFiles((prev) => {
+            const availableSlots = MAX_FILES - prev.length;
+            if (availableSlots <= 0) {
+                toast.error(`You can attach up to ${MAX_FILES} files.`);
+                return prev;
+            }
+
+            const accepted = [];
+            const rejected = [];
+
+            for (const file of incomingFiles) {
+                if (!ACCEPTED_TYPES.includes(file.type)) {
+                    rejected.push(`${file.name}: unsupported file type`);
+                } else if (file.size > MAX_FILE_SIZE) {
+                    rejected.push(`${file.name}: max ${formatFileSize(MAX_FILE_SIZE)}`);
+                } else {
+                    accepted.push(file);
+                }
+            }
+
+            if (rejected.length > 0) {
+                toast.error(rejected[0]);
+            }
+
+            if (accepted.length > availableSlots) {
+                toast.error(`Only ${availableSlots} more file${availableSlots === 1 ? '' : 's'} can be attached.`);
+            }
+
+            return [...prev, ...accepted.slice(0, availableSlots)];
+        });
     }, []);
 
     // Auto-resize textarea
@@ -65,14 +126,14 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
 
         if (pastedFiles.length > 0) {
             e.preventDefault();
-            setFiles((prev) => [...prev, ...pastedFiles].slice(0, 5));
+            addFiles(pastedFiles);
         }
     };
 
     const handleFileSelect = (e) => {
         const selected = Array.from(e.target.files);
         if (selected.length === 0) return;
-        setFiles((prev) => [...prev, ...selected].slice(0, 5)); // Max 5 files
+        addFiles(selected);
         e.target.value = '';
     };
 
@@ -81,7 +142,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
     };
 
     const startRecording = async () => {
-        if (disabled || isRecording || files.length >= 5) return;
+        if (disabled || isRecording || files.length >= MAX_FILES) return;
 
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
             return;
@@ -111,7 +172,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                     type: blob.type || 'audio/webm',
                 });
 
-                setFiles((prev) => [...prev, file].slice(0, 5));
+                addFiles([file]);
             };
 
             mediaRecorderRef.current = recorder;
@@ -128,12 +189,6 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
             mediaRecorderRef.current.stop();
         }
         setIsRecording(false);
-    };
-
-    const formatFileSize = (bytes) => {
-        if (bytes < 1024) return bytes + ' B';
-        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     };
 
     return (
@@ -186,9 +241,9 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                     <div className="flex items-center pl-3 pb-2">
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            disabled={disabled || files.length >= 5}
+                            disabled={disabled || files.length >= MAX_FILES}
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="Attach files (max 5)"
+                            title={`Attach files (max ${MAX_FILES}, ${formatFileSize(MAX_FILE_SIZE)} each)`}
                         >
                             <FiPaperclip className="w-4 h-4" />
                         </button>
@@ -218,7 +273,7 @@ const ChatInput = ({ onSend, disabled, isStreaming }) => {
                     <div className="flex items-center px-2 pb-2">
                         <button
                             onClick={isRecording ? stopRecording : startRecording}
-                            disabled={disabled || files.length >= 5}
+                            disabled={disabled || files.length >= MAX_FILES}
                             className={`mr-1 w-8 h-8 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed ${isRecording
                                 ? 'bg-red-500 text-white hover:bg-red-600'
                                 : 'text-gray-400 hover:text-white hover:bg-white/10'

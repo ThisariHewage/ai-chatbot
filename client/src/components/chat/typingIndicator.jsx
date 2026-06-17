@@ -1,7 +1,26 @@
+import { isValidElement } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+
+const StreamCodeBlock = ({ children, className }) => {
+    const language = className?.replace('language-', '') || 'text';
+
+    return (
+        <div className="my-2 rounded-lg overflow-hidden">
+            <div className="bg-[#1e1e2e] px-4 py-2 text-xs text-gray-400">{language}</div>
+            <SyntaxHighlighter
+                style={oneDark}
+                language={language}
+                PreTag="div"
+                customStyle={{ margin: 0, borderRadius: 0, fontSize: '13px' }}
+            >
+                {String(children).replace(/\n$/, '')}
+            </SyntaxHighlighter>
+        </div>
+    );
+};
 
 const TypingIndicator = ({ content }) => {
     const isStreaming = content && content.length > 0;
@@ -29,29 +48,19 @@ const TypingIndicator = ({ content }) => {
                                 p({ children }) {
                                     return <div className="markdown-paragraph">{children}</div>;
                                 },
-                                code({ node, inline, className, children, ...props }) {
-                                    const isBlock = !inline && (
-                                        className?.startsWith('language-') ||
-                                        node?.position?.start.line !== node?.position?.end.line
-                                    );
-
-                                    if (!isBlock) {
-                                        return <code className={className} {...props}>{children}</code>;
+                                pre({ children }) {
+                                    if (isValidElement(children) && children.type === 'code') {
+                                        return (
+                                            <StreamCodeBlock className={children.props.className}>
+                                                {children.props.children}
+                                            </StreamCodeBlock>
+                                        );
                                     }
-                                    const language = className?.replace('language-', '') || 'text';
-                                    return (
-                                        <div className="my-2 rounded-lg overflow-hidden">
-                                            <div className="bg-[#1e1e2e] px-4 py-2 text-xs text-gray-400">{language}</div>
-                                            <SyntaxHighlighter
-                                                style={oneDark}
-                                                language={language}
-                                                PreTag="div"
-                                                customStyle={{ margin: 0, borderRadius: 0, fontSize: '13px' }}
-                                            >
-                                                {String(children).replace(/\n$/, '')}
-                                            </SyntaxHighlighter>
-                                        </div>
-                                    );
+
+                                    return <pre>{children}</pre>;
+                                },
+                                code({ className, children, ...props }) {
+                                    return <code className={className} {...props}>{children}</code>;
                                 },
                             }}
                         >
