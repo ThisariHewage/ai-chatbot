@@ -61,7 +61,7 @@ const getProfileColor = (value = '') => {
     return profileColors[hash];
 };
 
-const Sidebar = ({ isOpen, onClose, onProfileClick }) => {
+const Sidebar = ({ isOpen, isDesktopOpen = true, onClose, onDesktopClose, onProfileClick }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { chats, activeChatId, loading, searchQuery } = useSelector((s) => s.chat);
@@ -280,12 +280,27 @@ const Sidebar = ({ isOpen, onClose, onProfileClick }) => {
           h-full w-[260px] flex flex-col
           bg-[#171717] transition-transform duration-300
           ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          ${isDesktopOpen ? 'md:flex' : 'md:hidden'}
         `}
             >
                 {/* Sidebar Header with Logo */}
                 <div className="p-4 flex items-center gap-3 border-b border-white/5">
                     <img src="/src/assets/logos/logo_1.png" alt="IntelliChat Logo" className="w-8 h-8 object-contain rounded-lg" />
-                    <span className="text-lg font-bold text-white tracking-tight">IntelliChat</span>
+                    <span className="flex-1 text-lg font-bold text-white tracking-tight">IntelliChat</span>
+                    <button
+                        onClick={onClose}
+                        className="md:hidden p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                        aria-label="Close sidebar"
+                    >
+                        <FiX className="w-4.5 h-4.5" />
+                    </button>
+                    <button
+                        onClick={onDesktopClose}
+                        className="hidden md:flex p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+                        aria-label="Close sidebar"
+                    >
+                        <FiX className="w-4.5 h-4.5" />
+                    </button>
                 </div>
 
                 {/* New IntelliChat Button */}

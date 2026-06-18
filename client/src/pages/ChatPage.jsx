@@ -19,6 +19,7 @@ const ChatPage = () => {
     const { messagesByChat, isStreaming, streamingContent, loading } = useSelector((s) => s.message);
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
     const [pendingMessage, setPendingMessage] = useState(null);
     const [showProfile, setShowProfile] = useState(false);
 
@@ -164,8 +165,10 @@ const ChatPage = () => {
         <div className="flex h-screen bg-[#212121] overflow-hidden">
             {/* Sidebar */}
             <Sidebar 
-                isOpen={sidebarOpen} 
-                onClose={() => setSidebarOpen(false)} 
+                isOpen={sidebarOpen}
+                isDesktopOpen={desktopSidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+                onDesktopClose={() => setDesktopSidebarOpen(false)}
                 onProfileClick={() => setShowProfile(true)}
             />
 
@@ -175,8 +178,12 @@ const ChatPage = () => {
                 <header className="flex-shrink-0 h-14 flex items-center justify-between px-4 border-b border-white/8">
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => setSidebarOpen((v) => !v)}
-                            className="md:hidden p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                            onClick={() => {
+                                setSidebarOpen((v) => !v);
+                                setDesktopSidebarOpen(true);
+                            }}
+                            className={`${desktopSidebarOpen ? 'md:hidden' : 'md:inline-flex'} p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors`}
+                            aria-label="Open sidebar"
                         >
                             <FiMenu className="w-5 h-5" />
                         </button>
