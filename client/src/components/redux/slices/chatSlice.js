@@ -185,29 +185,54 @@ const chatSlice = createSlice({
             });
 
         builder
+            .addCase(togglePinChat.pending, (state, action) => {
+                const { chatId, pinned } = action.meta.arg;
+                const chat = state.chats.find((c) => c._id === chatId);
+                if (chat) chat.pinned = pinned;
+            })
             .addCase(togglePinChat.fulfilled, (state, action) => {
                 const idx = state.chats.findIndex((c) => c._id === action.payload._id);
                 if (idx !== -1) state.chats[idx] = action.payload;
+                // Toast handled in component or here if preferred, keeping it consistent
                 toast.success(action.payload.pinned ? 'Chat pinned' : 'Chat unpinned');
             })
-            .addCase(togglePinChat.rejected, (_, action) => { toast.error(action.payload); });
+            .addCase(togglePinChat.rejected, (state, action) => {
+                const { chatId, pinned } = action.meta.arg;
+                const chat = state.chats.find((c) => c._id === chatId);
+                if (chat) chat.pinned = !pinned; // Rollback
+                toast.error(action.payload);
+            });
 
         builder
-            .addCase(toggleArchiveChat.fulfilled, (state, action) => {
-                // Remove from list if archiving, update in place if unarchiving
-                if (action.payload.archived) {
-                    state.chats = state.chats.filter((c) => c._id !== action.payload._id);
-                    if (state.activeChatId === action.payload._id) {
-                        state.activeChatId = state.chats[0]?._id || null;
-                    }
-                    toast.success('Chat archived');
-                } else {
-                    const idx = state.chats.findIndex((c) => c._id === action.payload._id);
-                    if (idx !== -1) state.chats[idx] = action.payload;
-                    toast.success('Chat unarchived');
+            .addCase(toggleArchiveChat.pending, (state, action) => {
+                const { chatId, archived } = action.meta.arg;
+                const chat = state.chats.find((c) => c._id === chatId);
+                if (chat) {
+                    chat.archived = archived;
+                    // If archiving active chat, we might want to clear activeChatId after fulfillment
                 }
             })
-            .addCase(toggleArchiveChat.rejected, (_, action) => { toast.error(action.payload); });
+            .addCase(toggleArchiveChat.fulfilled, (state, action) => {
+                const idx = state.chats.findIndex((c) => c._id === action.payload._id);
+                if (idx !== -1) {
+                    state.chats[idx] = action.payload;
+                } else {
+                    // In case it wasn't in state for some reason
+                    state.chats.unshift(action.payload);
+                }
+
+                if (action.payload.archived && state.activeChatId === action.payload._id) {
+                    state.activeChatId = state.chats.find(c => !c.archived)?._id || null;
+                }
+
+                toast.success(action.payload.archived ? 'Chat archived' : 'Chat unarchived');
+            })
+            .addCase(toggleArchiveChat.rejected, (state, action) => {
+                const { chatId, archived } = action.meta.arg;
+                const chat = state.chats.find((c) => c._id === chatId);
+                if (chat) chat.archived = !archived; // Rollback
+                toast.error(action.payload);
+            });
 
         builder
             .addCase(generateShareLink.rejected, (_, action) => { toast.error(action.payload); });
