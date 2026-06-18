@@ -213,39 +213,31 @@ const ProfileModal = ({ onClose }) => {
                             exit={{ scale: 0.9, opacity: 0, y: 20 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-sm glass rounded-2xl border border-white/10 overflow-hidden shadow-2xl"
+                            className="w-full max-w-sm bg-[#212121] rounded-2xl border border-white/10 p-5 shadow-2xl"
                         >
-                            {/* Red top accent */}
-                            <div className="h-[2px] bg-gradient-to-r from-transparent via-red-500/70 to-transparent" />
-
-                            <div className="p-6 text-center">
-                                {/* Warning Icon */}
-                                <div className="mx-auto w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4">
-                                    <FiTrash2 className="w-6 h-6 text-red-400" />
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
+                                    <FiTrash2 className="w-4 h-4 text-red-400" />
                                 </div>
-
-                                <h3 className="text-lg font-bold text-white mb-1">Delete Account</h3>
-                                <p className="text-sm text-gray-400 leading-relaxed">
-                                    Are you sure you want to delete your account? All your data and chat history will be permanently removed.
-                                </p>
-                                <p className="text-xs text-red-400/80 font-medium mt-2">
-                                    This action cannot be undone.
-                                </p>
+                                <h3 className="text-white font-semibold text-base">Delete account?</h3>
                             </div>
+                            <p className="text-gray-400 text-sm mb-5 leading-relaxed">
+                                Are you sure you want to delete your account? All your data and chat history will be permanently removed. This cannot be undone.
+                            </p>
 
-                            <div className="flex gap-3 px-6 pb-6">
+                            <div className="flex gap-2">
                                 <button
                                     onClick={() => setShowConfirm(false)}
-                                    className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-semibold text-gray-300 transition-all"
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-gray-300 bg-white/8 hover:bg-white/12 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={() => { setShowConfirm(false); handleDeleteAccount(); }}
                                     disabled={deleting}
-                                    className="flex-1 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 border border-red-500/30 rounded-xl text-sm font-semibold text-red-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {deleting ? 'Deleting...' : 'Yes, Delete'}
+                                    {deleting ? 'Deleting...' : 'Delete'}
                                 </button>
                             </div>
                         </motion.div>
