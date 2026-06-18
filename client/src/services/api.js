@@ -26,9 +26,13 @@ API.interceptors.response.use(
             error.config?.url?.includes('/auth/register');
 
         if (error.response?.status === 401 && !isAuthRequest) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
+            const message = error.response?.data?.message || '';
+            // Only redirect if it's clearly an auth failure, not some other 401
+            if (message.toLowerCase().includes('log in again') || message.toLowerCase().includes('unauthorized') || message.toLowerCase().includes('expired') || message.toLowerCase().includes('invalid session')) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }

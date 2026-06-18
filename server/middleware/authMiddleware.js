@@ -24,12 +24,20 @@ const protect = async (req, res, next) => {
         const decoded = verifyToken(token);
 
         // Attach user to request (exclude password)
-        req.user = await User.findById(decoded.id).select('-password');
+        try {
+            req.user = await User.findById(decoded.id).select('-password');
+        } catch (dbError) {
+            console.error('Database error in authMiddleware:', dbError);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error during authentication.',
+            });
+        }
 
         if (!req.user) {
             return res.status(401).json({
                 success: false,
-                message: 'User not found. Token invalid.',
+                message: 'User no longer exists. Please log in again.',
             });
         }
 
@@ -38,12 +46,20 @@ const protect = async (req, res, next) => {
         if (error.name === 'TokenExpiredError') {
             return res.status(401).json({
                 success: false,
-                message: 'Token expired. Please log in again.',
+                message: 'Your session has expired. Please log in again.',
             });
         }
-        return res.status(401).json({
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({
+                success: false,
+                message: 'Invalid session. Please log in again.',
+            });
+        }
+
+        console.error('Unexpected auth error:', error);
+        return res.status(500).json({
             success: false,
-            message: 'Not authorized. Invalid token.',
+            message: 'An unexpected error occurred during authentication.',
         });
     }
 };
