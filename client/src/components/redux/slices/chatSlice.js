@@ -136,7 +136,12 @@ const chatSlice = createSlice({
             .addCase(fetchChats.pending, (state) => { state.loading = true; })
             .addCase(fetchChats.fulfilled, (state, action) => {
                 state.loading = false;
-                state.chats = action.payload;
+                state.chats = action.payload || [];
+
+                const activeChatExists = state.chats.some((chat) => chat._id === state.activeChatId);
+                if (!activeChatExists) {
+                    state.activeChatId = state.chats.find((chat) => !chat.archived)?._id || state.chats[0]?._id || null;
+                }
             })
             .addCase(fetchChats.rejected, (state, action) => {
                 state.loading = false;

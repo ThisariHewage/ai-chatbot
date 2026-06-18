@@ -83,10 +83,11 @@ const sendMessage = async (req, res, next) => {
         const userMessage = await Message.create({ chatId, role: 'user', content, attachments });
 
         // Title locally to avoid spending an extra model request before the reply.
+        const chatUpdate = { updatedAt: new Date() };
         if (chat.title === 'New IntelliChat') {
-            const title = createLocalChatTitle(content);
-            await Chat.findByIdAndUpdate(chatId, { title });
+            chatUpdate.title = createLocalChatTitle(content);
         }
+        await Chat.findByIdAndUpdate(chatId, chatUpdate);
 
         // Fetch the latest conversation window, then restore chronological order.
         const history = (await Message.find({ chatId }).sort({ createdAt: -1 }).limit(12)).reverse();
@@ -218,6 +219,8 @@ const editMessage = async (req, res, next) => {
             role: 'assistant',
             content: fullContent,
         });
+
+        await Chat.findByIdAndUpdate(message.chatId, { updatedAt: new Date() });
 
         res.write(`data: ${JSON.stringify({ done: true, userMessage: message, assistantMessage })}\n\n`);
         res.end();

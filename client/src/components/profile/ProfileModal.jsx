@@ -75,10 +75,17 @@ const ProfileModal = ({ onClose }) => {
     };
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-y-auto"
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0a0a] overflow-y-auto"
             onClick={onClose}
         >
+            <div className="absolute inset-0 z-0 overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[120px] animate-mesh" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-purple-600/10 blur-[120px] animate-mesh" style={{ animationDelay: '-5s' }} />
+                <div className="absolute top-[20%] right-[10%] w-[30%] h-[30%] rounded-full bg-blue-400/5 blur-[100px] animate-mesh" style={{ animationDelay: '-10s' }} />
+                <div className="mesh-gradient absolute inset-0 opacity-30" />
+            </div>
+
             {/* Modal Box */}
             <motion.div
                 variants={modalVariants}
@@ -86,7 +93,7 @@ const ProfileModal = ({ onClose }) => {
                 animate="visible"
                 exit="exit"
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-md glass rounded-[24px] border border-white/10 overflow-hidden shadow-2xl my-4"
+                className="relative z-10 w-full max-w-md bg-[#0b0b0b]/95 rounded-[24px] border border-white/10 overflow-hidden shadow-2xl my-4"
             >
                 {/* Top Ambient Light Indicator */}
                 <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
