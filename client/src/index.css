@@ -106,7 +106,8 @@
 
 @layer utilities {
     .glass {
-        @apply bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0, 0, 0, 0.37)];
+        @apply bg-[#1a1a1a]/40 backdrop-blur-xl border border-white/10;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
 
     .mesh-gradient {

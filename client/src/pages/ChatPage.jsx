@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FiMenu, FiEdit } from 'react-icons/fi';
 import Sidebar from '../components/layout/Sidebar';
 import MessageBubble from '../components/chat/MessageBubble';
 import TypingIndicator from '../components/chat/TypingIndicator';
 import ChatInput from '../components/chat/ChatInput';
 import WelcomeScreen from '../components/chat/WelcomeScreen';
+import ProfileModal from '../components/profile/ProfileModal';
 import { fetchMessages, appendStreamDelta, finalizeStream, addOptimisticMessage, setStreamError, startStreaming } from '../components/redux/slices/messageSlice';
 import { newChat, updateChatTitle } from '../components/redux/slices/chatSlice';
 import { sendMessageStream } from '../services/api';
@@ -19,6 +20,7 @@ const ChatPage = () => {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [pendingMessage, setPendingMessage] = useState(null);
+    const [showProfile, setShowProfile] = useState(false);
 
     const messagesEndRef = useRef(null);
     const messages = activeChatId ? (messagesByChat[activeChatId] || []) : [];
@@ -157,7 +159,11 @@ const ChatPage = () => {
     return (
         <div className="flex h-screen bg-[#212121] overflow-hidden">
             {/* Sidebar */}
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <Sidebar 
+                isOpen={sidebarOpen} 
+                onClose={() => setSidebarOpen(false)} 
+                onProfileClick={() => setShowProfile(true)}
+            />
 
             {/* Main */}
             <div className="flex-1 flex flex-col min-w-0">
@@ -221,6 +227,13 @@ const ChatPage = () => {
                     isStreaming={isStreaming}
                 />
             </div>
+
+            {/* Profile Modal */}
+            <AnimatePresence>
+                {showProfile && (
+                    <ProfileModal onClose={() => setShowProfile(false)} />
+                )}
+            </AnimatePresence>
         </div>
     );
 };

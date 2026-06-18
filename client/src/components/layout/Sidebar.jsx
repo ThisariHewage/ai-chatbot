@@ -38,7 +38,7 @@ import { logout } from '../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen, onClose, onProfileClick }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { chats, activeChatId, loading, searchQuery } = useSelector((s) => s.chat);
@@ -650,7 +650,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 className="absolute bottom-full left-2 right-2 mb-1 bg-[#2f2f2f] rounded-xl border border-white/10 overflow-hidden shadow-xl"
                             >
                                 <button
-                                    onClick={() => { navigate('/profile'); setShowUserMenu(false); }}
+                                    onClick={() => { onProfileClick(); setShowUserMenu(false); }}
                                     className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-colors"
                                 >
                                     <FiUser className="w-4 h-4" />

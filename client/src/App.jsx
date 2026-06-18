@@ -6,7 +6,6 @@ import ProtectedRoute from './routes/ProtectedRoute';
 import ChatPage from './pages/ChatPage';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Profile from './pages/Profile';
 import SharedChatPage from './pages/SharedChatPage';
 
 function App() {
@@ -22,7 +21,6 @@ function App() {
           {/* Protected routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<ChatPage />} />
-            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Fallback */}
