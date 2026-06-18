@@ -41,7 +41,7 @@ function App() {
               zIndex: 9999,
             },
             success: {
-              iconTheme: { primary: '#19c37d', secondary: '#fff' },
+              iconTheme: { primary: '#3b82f6', secondary: '#fff' },
             },
             error: {
               iconTheme: { primary: '#ef4444', secondary: '#fff' },

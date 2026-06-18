@@ -7,7 +7,7 @@ import MessageBubble from '../components/chat/MessageBubble';
 import TypingIndicator from '../components/chat/TypingIndicator';
 import ChatInput from '../components/chat/ChatInput';
 import WelcomeScreen from '../components/chat/WelcomeScreen';
-import { fetchMessages, appendStreamDelta, finalizeStream, addOptimisticMessage, setStreamError } from '../components/redux/slices/messageSlice';
+import { fetchMessages, appendStreamDelta, finalizeStream, addOptimisticMessage, setStreamError, startStreaming } from '../components/redux/slices/messageSlice';
 import { newChat, updateChatTitle } from '../components/redux/slices/chatSlice';
 import { sendMessageStream } from '../services/api';
 import toast from 'react-hot-toast';
@@ -111,6 +111,7 @@ const ChatPage = () => {
             _optimistic: true,
         };
         dispatch(addOptimisticMessage({ chatId, message: tempUserMsg }));
+        dispatch(startStreaming());
 
         // Stream AI response
         await sendMessageStream(

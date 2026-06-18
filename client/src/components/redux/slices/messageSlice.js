@@ -24,6 +24,10 @@ const messageSlice = createSlice({
         error: null,
     },
     reducers: {
+        startStreaming: (state) => {
+            state.isStreaming = true;
+            state.streamingContent = '';
+        },
         appendStreamDelta: (state, action) => {
             state.streamingContent += action.payload;
             state.isStreaming = true;
@@ -94,6 +98,7 @@ const messageSlice = createSlice({
 });
 
 export const {
+    startStreaming,
     appendStreamDelta,
     finalizeStream,
     addOptimisticMessage,

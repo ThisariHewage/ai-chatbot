@@ -29,10 +29,12 @@ const TypingIndicator = ({ content }) => {
         <div className="flex gap-4 px-4 py-6 bg-[#2a2a2a]/50">
             {/* AI Avatar */}
             <div className="flex-shrink-0 mt-0.5">
-                <div className="w-8 h-8 rounded-full bg-[#19c37d] flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729z" />
-                    </svg>
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-white/10 shadow-sm bg-[#2f2f2f]">
+                    <img
+                        src="/src/assets/logos/logo_1.png"
+                        alt="IntelliChat"
+                        className="w-full h-full object-cover"
+                    />
                 </div>
             </div>
 
@@ -65,7 +67,7 @@ const TypingIndicator = ({ content }) => {
                             {content}
                         </ReactMarkdown>
                         {/* Blinking cursor */}
-                        <span className="inline-block w-0.5 h-4 bg-[#19c37d] ml-0.5 animate-pulse" />
+                        <span className="inline-block w-0.5 h-4 bg-blue-500 ml-0.5 animate-pulse" />
                     </div>
                 ) : (
                     // Waiting dots
