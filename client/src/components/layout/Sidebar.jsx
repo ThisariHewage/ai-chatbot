@@ -38,11 +38,36 @@ import { logout } from '../redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+const profileColors = [
+    '#2563eb',
+    '#7c3aed',
+    '#db2777',
+    '#059669',
+    '#0891b2',
+    '#d97706',
+    '#dc2626',
+    '#4f46e5',
+];
+
+const getProfileColor = (value = '') => {
+    const source = value.trim();
+    if (!source) return profileColors[0];
+
+    let hash = 0;
+    for (let i = 0; i < source.length; i += 1) {
+        hash = (hash + source.charCodeAt(i) * (i + 1)) % profileColors.length;
+    }
+
+    return profileColors[hash];
+};
+
 const Sidebar = ({ isOpen, onClose, onProfileClick }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { chats, activeChatId, loading, searchQuery } = useSelector((s) => s.chat);
     const { user } = useSelector((s) => s.auth);
+    const profileInitial = (user?.name || user?.email || '?').trim().charAt(0).toUpperCase();
+    const profileColor = getProfileColor(user?._id || user?.email || user?.name);
 
     const [editingId, setEditingId] = useState(null);
     const [editTitle, setEditTitle] = useState('');
@@ -632,8 +657,11 @@ const Sidebar = ({ isOpen, onClose, onProfileClick }) => {
                         onClick={() => setShowUserMenu((v) => !v)}
                         className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/10 transition-colors"
                     >
-                        <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
-                            <FiUser className="w-3.5 h-3.5 text-white" />
+                        <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border border-white/15"
+                            style={{ backgroundColor: profileColor }}
+                        >
+                            <span className="text-xs font-bold text-white leading-none">{profileInitial}</span>
                         </div>
                         <span className="flex-1 text-sm text-gray-200 truncate text-left">
                             {user?.name}
