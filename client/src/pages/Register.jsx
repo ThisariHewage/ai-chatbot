@@ -31,6 +31,10 @@ const Register = () => {
             toast.success('Account created successfully! 🎉');
         } else if (register.rejected.match(result)) {
             toast.error(result.payload || 'Registration failed');
+            // Auto-dismiss the inline error after 5 seconds
+            setTimeout(() => {
+                dispatch(clearError());
+            }, 5000);
         }
     };
 

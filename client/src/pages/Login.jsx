@@ -39,6 +39,10 @@ const Login = () => {
             toast.success(`Welcome back, ${result.payload.user.name}! 👋`);
         } else if (login.rejected.match(result)) {
             toast.error(result.payload || 'Login failed');
+            // Auto-dismiss the inline error after 5 seconds
+            setTimeout(() => {
+                dispatch(clearError());
+            }, 5000);
         }
     };
 
