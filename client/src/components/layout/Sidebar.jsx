@@ -921,7 +921,7 @@ const Sidebar = ({ isOpen, isDesktopOpen = true, onClose, onDesktopClose, onProf
                                 </button>
                                 <button
                                     onClick={confirmLogout}
-                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-rose-500 hover:bg-rose-600 transition-colors"
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors"
                                 >
                                     Sign out
                                 </button>
