@@ -49,15 +49,13 @@ const TypingIndicator = ({ content }) => {
                                     return <div className="markdown-paragraph">{children}</div>;
                                 },
                                 pre({ children }) {
-                                    if (isValidElement(children) && children.type === 'code') {
-                                        return (
-                                            <StreamCodeBlock className={children.props.className}>
-                                                {children.props.children}
-                                            </StreamCodeBlock>
-                                        );
-                                    }
-
-                                    return <pre>{children}</pre>;
+                                    // During streaming, render a simple pre block instead of heavy SyntaxHighlighter
+                                    // This significantly improves performance during high-speed streaming
+                                    return (
+                                        <div className="my-2 p-4 bg-[#1e1e2e] rounded-lg overflow-x-auto">
+                                            <pre className="text-gray-300 text-sm whitespace-pre-wrap">{children}</pre>
+                                        </div>
+                                    );
                                 },
                                 code({ className, children, ...props }) {
                                     return <code className={className} {...props}>{children}</code>;
@@ -67,7 +65,7 @@ const TypingIndicator = ({ content }) => {
                             {content}
                         </ReactMarkdown>
                         {/* Blinking cursor */}
-                        <span className="inline-block w-0.5 h-4 bg-white ml-0.5 animate-pulse" />
+                        <span className="inline-block w-0.5 h-4 bg-[#19c37d] ml-0.5 animate-pulse" />
                     </div>
                 ) : (
                     // Waiting dots

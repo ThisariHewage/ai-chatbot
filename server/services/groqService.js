@@ -4,8 +4,8 @@ const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
 });
 
-const PRIMARY_CHAT_MODEL = process.env.GROQ_CHAT_MODEL || 'llama-3.3-70b-versatile';
-const FALLBACK_CHAT_MODEL = process.env.GROQ_FALLBACK_CHAT_MODEL || 'llama-3.1-8b-instant';
+const PRIMARY_CHAT_MODEL = process.env.GROQ_CHAT_MODEL || 'llama-3.1-8b-instant';
+const FALLBACK_CHAT_MODEL = process.env.GROQ_FALLBACK_CHAT_MODEL || 'llama-3.3-70b-versatile';
 const MAX_CONTEXT_CHARS = Number(process.env.GROQ_MAX_CONTEXT_CHARS) || 9000;
 const MAX_MESSAGE_CHARS = Number(process.env.GROQ_MAX_MESSAGE_CHARS) || 3500;
 

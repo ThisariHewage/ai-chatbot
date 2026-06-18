@@ -23,14 +23,47 @@ const ChatPage = () => {
     const messagesEndRef = useRef(null);
     const messages = activeChatId ? (messagesByChat[activeChatId] || []) : [];
 
-    // Scroll to bottom whenever messages or stream changes
-    const scrollToBottom = useCallback(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Scroll to bottom whenever messages or stream changes (throttled)
+    const scrollTimeoutRef = useRef(null);
+    const scrollToBottom = useCallback((smooth = true, force = false) => {
+        if (!force && scrollTimeoutRef.current) return;
+
+        if (force && scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+            scrollTimeoutRef.current = null;
+        }
+
+        const doScroll = () => {
+            messagesEndRef.current?.scrollIntoView({
+                behavior: smooth ? 'smooth' : 'auto',
+                block: 'end'
+            });
+            scrollTimeoutRef.current = null;
+        };
+
+        if (force) {
+            doScroll();
+        } else {
+            scrollTimeoutRef.current = setTimeout(doScroll, 100);
+        }
     }, []);
 
     useEffect(() => {
-        scrollToBottom();
-    }, [messages, streamingContent, scrollToBottom]);
+        // If it's the very first message or starting a stream, scroll instantly
+        const isFirstMessage = messages.length === 1 && !isStreaming;
+        scrollToBottom(!isFirstMessage, isFirstMessage);
+
+        return () => {
+            if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+        };
+    }, [messages.length, isStreaming, scrollToBottom]);
+
+    // Also scroll during streaming
+    useEffect(() => {
+        if (isStreaming) {
+            scrollToBottom(true, false);
+        }
+    }, [streamingContent, isStreaming, scrollToBottom]);
 
     // Load messages when switching chats
     useEffect(() => {
