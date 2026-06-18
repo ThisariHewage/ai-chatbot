@@ -21,7 +21,11 @@ API.interceptors.request.use(
 API.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        // Skip redirect for login/register requests to allow error messages to show
+        const isAuthRequest = error.config?.url?.includes('/auth/login') ||
+            error.config?.url?.includes('/auth/register');
+
+        if (error.response?.status === 401 && !isAuthRequest) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';

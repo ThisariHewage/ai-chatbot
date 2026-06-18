@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { login, clearError } from '../components/redux/slices/authSlice';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const Login = () => {
     const dispatch = useDispatch();
@@ -29,10 +30,16 @@ const Login = () => {
     const handleChange = (e) =>
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.email || !form.password) return;
-        dispatch(login(form));
+
+        const result = await dispatch(login(form));
+        if (login.fulfilled.match(result)) {
+            toast.success(`Welcome back, ${result.payload.user.name}! 👋`);
+        } else if (login.rejected.match(result)) {
+            toast.error(result.payload || 'Login failed');
+        }
     };
 
     return (
@@ -49,6 +56,20 @@ const Login = () => {
                     </div>
                     <h1 className="text-2xl font-semibold text-white">Welcome back</h1>
                 </div>
+
+                {/* Error Alert */}
+                <AnimatePresence mode="wait">
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-center text-center"
+                        >
+                            {error}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-3">

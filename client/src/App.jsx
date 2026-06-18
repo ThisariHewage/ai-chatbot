@@ -38,6 +38,7 @@ function App() {
               border: '1px solid rgba(255,255,255,0.1)',
               fontSize: '14px',
               borderRadius: '12px',
+              zIndex: 9999,
             },
             success: {
               iconTheme: { primary: '#19c37d', secondary: '#fff' },

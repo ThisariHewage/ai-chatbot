@@ -52,9 +52,10 @@ const login = async (req, res, next) => {
         // Find user and include password for comparison
         const user = await User.findOne({ email }).select('+password');
         if (!user) {
+            console.log(`User not found: ${email}`);
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password.',
+                message: 'No account found with this email address.',
             });
         }
 
@@ -63,7 +64,7 @@ const login = async (req, res, next) => {
         if (!isMatch) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password.',
+                message: 'Incorrect password. Please double-check and try again.',
             });
         }
 

@@ -94,12 +94,10 @@ const authSlice = createSlice({
                 state.user = action.payload.user;
                 state.token = action.payload.token;
                 state.isAuthenticated = true;
-                toast.success('Account created successfully! 🎉');
             })
             .addCase(register.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-                toast.error(action.payload);
             });
 
         // Login
@@ -113,12 +111,10 @@ const authSlice = createSlice({
                 state.user = action.payload.user;
                 state.token = action.payload.token;
                 state.isAuthenticated = true;
-                toast.success(`Welcome back, ${action.payload.user.name}! 👋`);
             })
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
-                toast.error(action.payload);
             });
 
         // Profile

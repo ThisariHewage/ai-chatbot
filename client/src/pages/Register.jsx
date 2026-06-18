@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { register, clearError } from '../components/redux/slices/authSlice';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 
 const Register = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, isAuthenticated } = useSelector((s) => s.auth);
+    const { loading, error, isAuthenticated } = useSelector((s) => s.auth);
 
     const [form, setForm] = useState({ name: '', email: '', password: '' });
     const [showPass, setShowPass] = useState(false);
@@ -21,10 +22,16 @@ const Register = () => {
     const handleChange = (e) =>
         setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!form.name || !form.email || !form.password) return;
-        dispatch(register(form));
+
+        const result = await dispatch(register(form));
+        if (register.fulfilled.match(result)) {
+            toast.success('Account created successfully! 🎉');
+        } else if (register.rejected.match(result)) {
+            toast.error(result.payload || 'Registration failed');
+        }
     };
 
     return (
@@ -41,6 +48,20 @@ const Register = () => {
                     </div>
                     <h1 className="text-2xl font-semibold text-white">Create an account</h1>
                 </div>
+
+                {/* Error Alert */}
+                <AnimatePresence mode="wait">
+                    {error && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center justify-center text-center"
+                        >
+                            {error}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <form onSubmit={handleSubmit} className="space-y-3">
                     <div className="relative">
