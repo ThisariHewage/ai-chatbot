@@ -24,6 +24,10 @@ const ChatPage = () => {
 
     const messagesEndRef = useRef(null);
     const messages = activeChatId ? (messagesByChat[activeChatId] || []) : [];
+    const hasLoadedActiveChat = activeChatId
+        ? Object.prototype.hasOwnProperty.call(messagesByChat, activeChatId)
+        : false;
+    const showChatLoading = activeChatId && !hasLoadedActiveChat;
 
     // Scroll to bottom whenever messages or stream changes (throttled)
     const scrollTimeoutRef = useRef(null);
@@ -74,7 +78,7 @@ const ChatPage = () => {
         if (activeChatId && !messagesByChat[activeChatId]) {
             dispatch(fetchMessages(activeChatId));
         }
-    }, [activeChatId, dispatch]);
+    }, [activeChatId, messagesByChat, dispatch]);
 
     const handleSend = async (content, files = []) => {
         let chatId = activeChatId;
@@ -197,7 +201,11 @@ const ChatPage = () => {
 
                 {/* Messages area */}
                 <div className="flex-1 overflow-y-auto">
-                    {messages.length === 0 && !isStreaming ? (
+                    {showChatLoading ? (
+                        <div className="flex items-center justify-center py-20">
+                            <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        </div>
+                    ) : messages.length === 0 && !isStreaming ? (
                         <WelcomeScreen onSelectSuggestion={handleSuggestion} />
                     ) : (
                         <div className="max-w-3xl mx-auto">
