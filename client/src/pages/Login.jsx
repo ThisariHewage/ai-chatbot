@@ -132,7 +132,7 @@ const Login = () => {
                         <motion.div variants={itemVariants} className="space-y-1.5">
                             <div className="flex justify-between items-center px-1">
                                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Password</label>
-                                <button type="button" className="text-[11px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest">Forgot?</button>
+
                             </div>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-blue-400 transition-colors">
