@@ -176,8 +176,8 @@ const ProfileModal = ({ onClose }) => {
 
                         {/* Danger Zone */}
                         <motion.div variants={itemVariants} className="space-y-2">
-                            <h3 className="text-[10px] font-bold text-red-500/60 uppercase tracking-widest px-1">Danger Zone</h3>
-                            <div className="flex items-center justify-between p-3 bg-red-500/5 rounded-xl border border-red-500/10 gap-4">
+                            <h3 className="text-[10px] font-bold text-rose-400/70 uppercase tracking-widest px-1">Danger Zone</h3>
+                            <div className="flex items-center justify-between p-3 bg-rose-500/5 rounded-xl border border-rose-500/10 gap-4">
                                 <div className="min-w-0">
                                     <p className="text-xs font-semibold text-white">Delete Account</p>
                                     <p className="text-[10px] text-gray-500 mt-0.5">Permanently delete your profile and chats.</p>
@@ -185,7 +185,7 @@ const ProfileModal = ({ onClose }) => {
                                 <button
                                     onClick={() => setShowConfirm(true)}
                                     disabled={deleting}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-lg text-rose-300 text-xs font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                                 >
                                     <FiTrash2 className="w-3.5 h-3.5" />
                                     {deleting ? 'Deleting...' : 'Delete'}
@@ -216,8 +216,8 @@ const ProfileModal = ({ onClose }) => {
                             className="w-full max-w-sm bg-[#212121] rounded-2xl border border-white/10 p-5 shadow-2xl"
                         >
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="w-9 h-9 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0">
-                                    <FiTrash2 className="w-4 h-4 text-red-400" />
+                                <div className="w-9 h-9 rounded-full bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                                    <FiTrash2 className="w-4 h-4 text-rose-300" />
                                 </div>
                                 <h3 className="text-white font-semibold text-base">Delete account?</h3>
                             </div>
@@ -235,7 +235,7 @@ const ProfileModal = ({ onClose }) => {
                                 <button
                                     onClick={() => { setShowConfirm(false); handleDeleteAccount(); }}
                                     disabled={deleting}
-                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-4 py-2 rounded-xl text-sm font-medium text-white bg-rose-600 hover:bg-rose-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {deleting ? 'Deleting...' : 'Delete'}
                                 </button>
