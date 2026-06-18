@@ -49,21 +49,23 @@ const ChatPage = () => {
     }, []);
 
     useEffect(() => {
-        // If it's the very first message or starting a stream, scroll instantly
+        // Use instant scroll when switching chats or for the very first message
+        const isSwitchingChat = messages.length > 0 && !isStreaming;
         const isFirstMessage = messages.length === 1 && !isStreaming;
-        scrollToBottom(!isFirstMessage, isFirstMessage);
+
+        scrollToBottom(!(isSwitchingChat || isFirstMessage), (isSwitchingChat || isFirstMessage));
 
         return () => {
             if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
         };
-    }, [messages.length, isStreaming, scrollToBottom]);
+    }, [activeChatId, messages.length === 0, scrollToBottom]); // Trigger on chat change or initial message load
 
-    // Also scroll during streaming
+    // Also scroll during streaming or when messages are added
     useEffect(() => {
-        if (isStreaming) {
+        if (messages.length > 0) {
             scrollToBottom(true, false);
         }
-    }, [streamingContent, isStreaming, scrollToBottom]);
+    }, [messages.length, streamingContent, scrollToBottom]);
 
     // Load messages when switching chats
     useEffect(() => {
