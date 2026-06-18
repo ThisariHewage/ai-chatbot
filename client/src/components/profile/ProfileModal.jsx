@@ -77,7 +77,6 @@ const ProfileModal = ({ onClose }) => {
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0a0a] overflow-y-auto"
-            onClick={onClose}
         >
             <div className="absolute inset-0 z-0 overflow-hidden">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[120px] animate-mesh" />
